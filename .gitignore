@@ -1,0 +1,12 @@
+
+*.ccls
+*.ccls-cache/
+*.o
+*/*.o
+*.db
+.depend
+main
+log.txt
+
+
+
