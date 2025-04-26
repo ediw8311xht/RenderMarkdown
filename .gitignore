@@ -11,6 +11,5 @@ log.txt
 *.jpeg
 */*.jpg
 */*.jpeg
-
-
-
+.my_info
+*/.my_info
