@@ -13,3 +13,7 @@ log.txt
 */*.jpeg
 .my_info
 */.my_info
+*/test/
+test/
+STATIC_FILES/
+*.jpeg
