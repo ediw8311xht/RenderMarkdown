@@ -25,15 +25,15 @@ namespace ParseMarkdownNS {
     using _vt = std::vector<MyToken>;
 
     enum MyTokenType : char {
-        h1      = '1' ,
-        h2      = '2' ,
-        h3      = '3' ,
-        h4      = '4' ,
-        h5      = '5' ,
-        p       = 'p' ,
-        code    = 'c' ,
-        bold    = 'b' ,
-        italics = 'i' ,
+        h1     = '1' ,
+        h2     = '2' ,
+        h3     = '3' ,
+        h4     = '4' ,
+        h5     = '5' ,
+        p      = 'p' ,
+        code   = 'c' ,
+        bold   = 'b' ,
+        italic = 'i' ,
     };
 
     struct MyToken {
@@ -54,6 +54,8 @@ namespace ParseMarkdownNS {
             ParseMarkdown(_vs files={}) : files(files) {
                 read_in_files();
             }
+            ParseMarkdown(_s file) { ParseMarkdown({file}); }
+
 
             void read_in_files() {
                 _read_in_files(this->files, this->files.begin(), this->files.end());
