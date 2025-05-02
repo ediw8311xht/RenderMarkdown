@@ -6,7 +6,7 @@
 
 using ParseMarkdownNS::ParseMarkdown;
 using ParseMarkdownNS::MyToken;
-using ParseMarkdownNS::_vs;
+using ParseMarkdownNS::_vc_s;
 using ParseMarkdownNS::_s;
 
 using std::cout;
@@ -39,7 +39,7 @@ void test_1() {
     const std::string STATIC_FILES = getenv( "STATIC_FILES" );
     output_error(STATIC_FILES != "", "STATIC_FILES environment var not found");
     _s test_file = conc(STATIC_FILES, "test.md");
-    _vs n({test_file});
+    _vc_s n({test_file});
     ParseMarkdown a(n);
     cout << "Success" << endl;
 }
