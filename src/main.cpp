@@ -36,7 +36,7 @@ void output_error(bool check, const char* error_message="", int exit_status=1) {
 
 
 void test_1() {
-    const std::string STATIC_FILES = getenv( "STATIC_FILES" );
+    const std::string STATIC_FILES = my_get_env( "STATIC_FILES" );
     output_error(STATIC_FILES != "", "STATIC_FILES environment var not found");
     _s test_file = conc(STATIC_FILES, "test.md");
     _vc_s n({test_file});

@@ -20,13 +20,13 @@ namespace ParseMarkdownNS {
 
     // Declare before defining.
     typedef struct MyToken MyToken;
-    enum MyTokenType : char;
+    enum MyTokenType : int;
     class ParseMarkdown;
 
     // Instead of using namespace std which can cause conflicts or `std::`
     // I think this is a simpler way, but maybe not "standard" or "good" practice lol
     using _s   = std::string;
-    using _ft  = std::function<void(std::string)>;
+    using _ft  = std::function<std::vector<MyToken>(std::string)>;
     using _t   = MyToken;
 
     using _vc_s  = std::vector<std::string>;
@@ -34,20 +34,20 @@ namespace ParseMarkdownNS {
     using _vc_os = std::vector<std::optional<std::string>>;
 
     using _st_t = std::set<MyToken>;
-    using _mp_t = std::map<MyTokenType, std::tuple<std::regex, std::regex>>;
+    // Stores token the regex to find it and the lambda function to call with it.
+    using _mp_t = std::map< MyTokenType, std::tuple<const std::regex, _ft>
+                        >;
+    using _mtt  = MyTokenType;
     using std::format;
 
-    enum MyTokenType : char {
-        h1     = '1' ,
-        h2     = '2' ,
-        h3     = '3' ,
-        h4     = '4' ,
-        h5     = '5' ,
-        p      = 'p' ,
-        code   = 'c' ,
-        bold   = 'b' ,
-        italic = 'i' ,
-        text   = 't' ,
+    // Order to check state
+    enum MyTokenType : int {
+        none   = 0 ,
+        header     ,
+        code       ,
+        bold       ,
+        italic     ,
+        text       ,
     };
 
     struct MyToken {
@@ -64,6 +64,8 @@ namespace ParseMarkdownNS {
             _vc_os  str_files; // Lines of files
             _s      total_str; // Concenated contents of all files
             _vc_s      errors;
+            _vc_t   token_out; // Where tokenized markdown is store
+            inline static constexpr auto header_lambda = [](_s s) -> _vc_t { return {}; };
             // Internal function for read_in_files()
             // optional<string> so value returned can indicate when there is an
             // issue with opening the file.
@@ -78,17 +80,20 @@ namespace ParseMarkdownNS {
             void _read_in_files(_vc_s& f, _vc_s::iterator i, _vc_s::iterator e) {
                 if (i == e) { return; }
                 std::optional<_s> o = file_as_string(*i);
-                this->str_files.push_back(o);
+                std::cout << "HI" << std::endl;
                 if (!o.has_value()) {
+                    this->str_files.push_back("");
                     this->errors.push_back(format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)));
                 }
                 else {
+                    this->str_files.push_back(o);
                     this->total_str += o.value();
                 }
                 return _read_in_files(f, ++i, e);
             }
             void handle_regex() {
             }
+            void _to_tokens(_st_t states, _mtt curr_toke=_mtt::none);
         public:
             ParseMarkdown(_vc_s files={}) : files(files) {
                 read_in_files();
@@ -96,7 +101,7 @@ namespace ParseMarkdownNS {
             ParseMarkdown(_s file) { ParseMarkdown({file}); }
 
 
-            _vc_t to_tokens(_st_t states);
+            void to_tokens(_st_t states) { this->token_out = {}; _to_tokens({}); }
 
             void read_in_files() {
                 this->files = {}; this->str_files = {}; this->total_str = "";
@@ -104,16 +109,17 @@ namespace ParseMarkdownNS {
             }
     };
     inline const _mp_t ParseMarkdown::token_regex = {
-        { MyTokenType::h1,      { std::regex(), std::regex() } },
-        { MyTokenType::h2,      { std::regex(), std::regex() } },
-        { MyTokenType::h3,      { std::regex(), std::regex() } },
-        { MyTokenType::h4,      { std::regex(), std::regex() } },
-        { MyTokenType::h5,      { std::regex(), std::regex() } },
-        { MyTokenType::p,       { std::regex(), std::regex() } },
-        { MyTokenType::code,    { std::regex(), std::regex() } },
-        { MyTokenType::bold,    { std::regex(), std::regex() } },
-        { MyTokenType::italic,  { std::regex(), std::regex() } },
-        { MyTokenType::text,    { std::regex(), std::regex() } },
+        { MyTokenType::header, { std::regex("") , header_lambda                    }  },                        
+        { MyTokenType::code,   { std::regex("") , [](_s s) -> _vc_t { return {}; } } },
+        { MyTokenType::bold,   { std::regex("") , [](_s s) -> _vc_t { return {}; } } },
+        { MyTokenType::italic, { std::regex("") , [](_s s) -> _vc_t { return {}; } } },
+        { MyTokenType::text,   { std::regex("") , [](_s s) -> _vc_t { return {}; } } },
     };
+
+    inline void ParseMarkdown::_to_tokens(_st_t states, _mtt curr_toke) {
+        if (curr_toke == _mtt::none) {
+        }
+    }
 }
+
 
