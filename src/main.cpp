@@ -1,13 +1,17 @@
 #include <iostream>
 #include <stdlib.h>
 #include "parse_markdown.h"
+#include "my_makeimage.h"
 #include <format>
+// #include <Magick++.h>
 
 
+// namespace Mag = Magick;
 using ParseMarkdownNS::ParseMarkdown;
 using ParseMarkdownNS::MyToken;
 using ParseMarkdownNS::_vc_s;
 using ParseMarkdownNS::_s;
+using MakeImageNS::MakeImage;
 
 using std::cout;
 using std::endl;
@@ -44,9 +48,16 @@ void test_1() {
     cout << "Success" << endl;
 }
 
-int main()
+void test2() {
+
+}
+
+int main(int argc, char** argv)
 {
-    test_1();
+    
+    MakeImage::initialize(*argv);
+    //test_1();
+    //test2();
     std::cout << "HI" << std::endl;
     return 0;
 }
