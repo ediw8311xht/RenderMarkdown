@@ -28,7 +28,6 @@ namespace Mag = Magick;
 // };
 
 struct TextData {
-    _s      text;
     double  font_size   = 12;
     _s      font        = "Noto-Sans";
     Color   fg          = Color("black");
@@ -56,19 +55,22 @@ class MakeImage {
         size_t   offset_x;
         size_t   padding_y;
         static const int line_spacing = 30;
-        Image image_from_data(TextData t) {
+
+        Image image_from_data(_s text, TextData t) {
             Image new_img(subimg_geo, t.bg);
             new_img.fontPointsize(t.font_size);
             new_img.fillColor(t.fg);
             // `pango:` allowing pango formatting wwth `<b>`, `<i>`, etc.
-            new_img.read("pango:" + t.text);
+            new_img.read("pango:" + text);
             return new_img;
         }
+
         void write_image(Image& img) {
             canvas.composite(img, offset_x, offset_y, Mag::OverCompositeOp);
             // Update offset to adjust for written image
             offset_y += img.rows() + padding_y;
         }
+
     public:
         MakeImage(size_t x=500, size_t y=500, Color canvas_bg="white", int offset_y=0, int offset_x=0 )
             : canvas_size(x, y)     ,
@@ -83,13 +85,15 @@ class MakeImage {
             // See: http://www.graphicsmagick.org/Magick++/
             Mag::InitializeMagick(arg);
         }
-        void write_text(TextData t) {
-            Image img = image_from_data(t);
+        void write_text(_s text, TextData t) {
+            Image img = image_from_data(text, t);
         }
+
         void reset_image(int offset_y=0) {
             canvas.erase();
             this->offset_y = offset_y;
         }
+
         void save_image(const _s& filename) {
             canvas.write(filename);
         }

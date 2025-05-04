@@ -8,11 +8,14 @@
 
 // namespace Mag = Magick;
 using ParseMarkdownNS::ParseMarkdown;
-using ParseMarkdownNS::MyToken;
-using ParseMarkdownNS::_vc_s;
-using ParseMarkdownNS::_s;
+using ParseMarkdownNS::Token;
+using ParseMarkdownNS::TokenType;
 using MakeImageNS::MakeImage;
+using MakeImageNS::TextData;
 
+using _s = std::string;
+template <typename T>
+using vec = std::vector<T>;
 using std::cout;
 using std::endl;
 using std::cerr;
@@ -43,20 +46,21 @@ void test_1() {
     const std::string STATIC_FILES = my_get_env( "STATIC_FILES" );
     output_error(STATIC_FILES != "", "STATIC_FILES environment var not found");
     _s test_file = conc(STATIC_FILES, "test.md");
-    _vc_s n({test_file});
-    ParseMarkdown a(n);
+    vec<_s> n({test_file});
+    ParseMarkdown parse_markdown(n);
+    vec<Token> tokens = parse_markdown.to_tokens();
     cout << "Success" << endl;
 }
 
 void test2() {
-
+    return;
 }
 
 int main(int argc, char** argv)
 {
     
-    MakeImage::initialize(*argv);
-    //test_1();
+    //MakeImage::initialize(*argv);
+    test_1();
     //test2();
     std::cout << "HI" << std::endl;
     return 0;

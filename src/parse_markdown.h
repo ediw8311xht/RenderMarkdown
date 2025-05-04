@@ -12,6 +12,8 @@
 #include <format>
 #include <map>
 #include <tuple>
+#include <Magick++.h>
+#include "my_makeimage.h"
 
 // For now all functions will be inline, so it's easier to write and test.
 // Will update later.
@@ -19,52 +21,60 @@
 namespace ParseMarkdownNS {
 
 // Declare before defining.
-typedef struct MyToken MyToken;
-enum MyTokenType : int;
+typedef struct Token Token;
+enum TokenType : int;
 class ParseMarkdown;
 
-// Instead of using namespace std which can cause conflicts or `std::`
-// I think this is a simpler way, but maybe not "standard" or "good" practice lol
 using _s   = std::string;
-using _ft  = std::function<std::vector<MyToken>(std::string)>;
-using _t   = MyToken;
+using _t   = Token;
+using mfunc = std::function<void(std::smatch, std::vector<Token>& tokens)>;
 
-using _vc_s  = std::vector<std::string>;
-using _vc_t  = std::vector<MyToken>;
-using _vc_os = std::vector<std::optional<std::string>>;
 
-using _st_t = std::set<MyToken>;
-// Stores token the regex to find it and the lambda function to call with it.
-using _mp_t = std::map< MyTokenType, std::tuple<const std::regex, _ft> >;
-using _mtt  = MyTokenType;
+template <typename T>
+using vec   = std::vector<T>;
+using std::optional;
+using std::map;
+using std::regex;
+using MakeImageNS::MakeImage;
+using MakeImageNS::TextData;
 using std::format;
 
 // Order to check state
-enum MyTokenType : int {
-    none   = 0 ,
-    header     ,
+enum TokenType : int {
+    none   = -1,
     code       ,
+    header     ,
     bold       ,
     italic     ,
     text       ,
 };
 
-struct MyToken {
-    _s            data;
-    bool         start;
-    MyTokenType   type;
+struct Token {
+    TokenType type       = TokenType::none;
+    _s        text       = "";
+    TextData  text_data  = TextData();
+
+    Token(_s text) : text(text) {}
+
+    Token(TokenType type=TokenType::none, _s text="", TextData text_data = TextData())
+        : type(type), text(text), text_data(text_data) {}
 };
 
 class ParseMarkdown {
-
     private:
-        static const _mp_t token_regex;
-        _vc_s       files; // Names of markdown files
-        _vc_os  str_files; // Lines of files
-        _s      total_str; // Concenated contents of all files
-        _vc_s      errors;
-        _vc_t   token_out; // Where tokenized markdown is store
-        inline static constexpr auto header_lambda = [](_s s) -> _vc_t { return {}; };
+//----------------------------- Maps
+        static const map< const TokenType, const regex >         token_regex;
+        static const map< const TokenType, mfunc >               token_funcs;
+        static const std::map< const TokenType, const TextData > text_map;
+
+//----------------------------- Vars
+        vec<_s>           files; // Names of markdown files
+        vec<optional<_s>> str_files; // Lines of files
+        _s                total_str; // Concenated contents of all files
+        vec<_s>           errors;
+        vec<_t> _to_tokens(_s curr);
+
+//----------------------------- Functions
         // Internal function for read_in_files()
         // optional<string> so value returned can indicate when there is an
         // issue with opening the file.
@@ -76,7 +86,7 @@ class ParseMarkdown {
             }
             return std::nullopt;
         }
-        void _read_in_files(_vc_s& f, _vc_s::iterator i, _vc_s::iterator e) {
+        void _read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::iterator e) {
             if (i == e) { return; }
             std::optional<_s> o = file_as_string(*i);
             this->str_files.push_back(o);
@@ -88,37 +98,71 @@ class ParseMarkdown {
             }
             return _read_in_files(f, ++i, e);
         }
-        void handle_regex() {
-        }
-        inline void _to_tokens(_s curr_string) {
-            for (const auto& [key, value] : token_regex) {
-            }
-        }
     public:
-        ParseMarkdown(_vc_s files={}) : files(files) {
-            read_in_files();
-        }
-        ParseMarkdown(_s file) { ParseMarkdown({file}); }
-
-
-        _vc_t to_tokens(_st_t states) {
-            this->token_out = {};
-            _to_tokens(this->total_str); return {};
-        }
+        ParseMarkdown(vec<_s> files={}) : files(files)  { read_in_files();       }
+        ParseMarkdown(_s file)                          { ParseMarkdown({file}); }
 
         void read_in_files() {
             this->files = {}; this->str_files = {}; this->total_str = "";
             _read_in_files(this->files, this->files.begin(), this->files.end());
         }
+
+        vec<_t> to_tokens() { return _to_tokens(total_str); }
+
+        void handle_code(_s total_str, vec<_t> tokens) {
+            auto i = std::sregex_iterator(total_str.begin(), total_str.end(), token_regex.at(TokenType::code));
+            _s pre = "";
+            _s post = total_str;
+            for (; i != std::sregex_iterator(); i++) {
+                std::smatch m = *i;
+                if ((pre = m.prefix()) != "") { tokens.push_back( { pre } ); }
+
+                tokens.push_back( { TokenType::code, m[0], text_map.at(TokenType::code) } );
+                post = m.suffix();
+            }
+            if (post != "") { tokens.push_back( { post } ); }
+        }
+        void handler(_s total_str, vec<_t> tokens, TokenType token_type) {
+            auto i = std::sregex_iterator(total_str.begin(), total_str.end(), token_regex.at(token_type));
+            _s pre = "";
+            _s post = total_str;
+            for (; i != std::sregex_iterator(); i++) {
+                std::smatch m = *i;
+                if ((pre = m.prefix()) != "") { tokens.push_back( { pre } ); }
+
+                tokens.push_back( { TokenType::code, m[0], text_map.at(TokenType::code) } );
+                post = m.suffix();
+            }
+            if (post != "") { tokens.push_back( { post } ); }
+        }
 };
-inline const _mp_t ParseMarkdown::token_regex = {
-    { MyTokenType::header,  {    std::regex("^([#]{1,5})[ ](.*)$")      , header_lambda } },
-    { MyTokenType::code,    {    std::regex("```")                      , [](_s s) -> _vc_t { return {}; } } },
-    { MyTokenType::bold,    {    std::regex("([\\*]{2})(.*)([\\*]{2})") , [](_s s) -> _vc_t { return {}; } } },
-    { MyTokenType::italic,  {    std::regex("([*])(.*)([*])")           , [](_s s) -> _vc_t { return {}; } } },
-    { MyTokenType::text,    {    std::regex("")                         , [](_s s) -> _vc_t { return {}; } } },
+
+inline vec<_t> ParseMarkdown::_to_tokens(_s curr) {
+    vec<_t> f = {};
+    handle_code(curr, f);
+
+    return {};
+}
+ 
+inline const std::map< const TokenType, const TextData > ParseMarkdown::text_map = {
+    { TokenType::code, TextData(12, "Noto-Mono", "Black", "transparent") }
+    // { TokenType::code,   TextData(
+};
+
+inline const map<const TokenType, const regex> ParseMarkdown::token_regex = {
+    { TokenType::code,    std::regex("```([\\s\\S]*?)```")        },
+    { TokenType::header,  std::regex("^([#]{1,5})[ ](.*)$")       },
+    { TokenType::bold,    std::regex("([\\*]{2})(.*)([\\*]{2})")  },
+    { TokenType::italic,  std::regex("([*])(.*)([*])")            },
+    { TokenType::text,    std::regex("")                          },
+};
+
+inline const map<const TokenType, mfunc> ParseMarkdown::token_funcs {
+    { TokenType::code, 
+        [](std::smatch m, vec<Token>& tokens) {
+            tokens.push_back( {TokenType::code, m[0], text_map.at(TokenType::code)});
+        }
+    },
 };
 
 }
-
-
