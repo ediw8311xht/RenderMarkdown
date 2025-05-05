@@ -87,6 +87,7 @@ class MakeImage {
         }
         void write_text(_s text, TextData t) {
             Image img = image_from_data(text, t);
+            write_image(img);
         }
 
         void reset_image(int offset_y=0) {

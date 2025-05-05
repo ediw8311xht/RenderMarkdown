@@ -43,13 +43,24 @@ void output_error(bool check, const char* error_message="", int exit_status=1) {
 
 
 void test_1() {
+    MakeImage a;
+}
+void test_3() {
     const std::string STATIC_FILES = my_get_env( "STATIC_FILES" );
     output_error(STATIC_FILES != "", "STATIC_FILES environment var not found");
     _s test_file = conc(STATIC_FILES, "test.md");
+    _s out_file = conc("STATIC_FILES", "out.jpeg");
     vec<_s> n({test_file});
-    ParseMarkdown parse_markdown(n);
-    vec<Token> tokens = parse_markdown.to_tokens();
-    cout << "Success" << endl;
+    ParseMarkdown pmark(n);
+    pmark.make_image(out_file);
+    // vec<Token> tokens = pmark.to_tokens();
+    // for (auto [i, j, k] : tokens) {
+    //     // Enum
+    //     cout << static_cast<int>(i) << endl;
+    //     cout << j << endl;
+    //     cout << endl;
+    // }
+    // cout << "Success" << endl;
 }
 
 void test2() {
@@ -60,7 +71,7 @@ int main(int argc, char** argv)
 {
     
     //MakeImage::initialize(*argv);
-    test_1();
+    test_3();
     //test2();
     std::cout << "HI" << std::endl;
     return 0;
