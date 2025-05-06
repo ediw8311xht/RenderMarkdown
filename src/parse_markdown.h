@@ -3,7 +3,6 @@
 #include "my_makeimage.h"
 #include <iostream>
 #include <fstream>
-#include <queue>
 #include <vector>
 #include <string>
 #include <set>
@@ -45,11 +44,13 @@ using MakeImageNS::MakeImage;
 using MakeImageNS::TextData;
 
 template <typename T>
-using vec   = std::vector<T>;
-using _s    = std::string;
-using _t    = Token;
-using TT    = TokenType;
-using mfunc = std::function<vec<_t>(boost::smatch&)>;
+using vec    = std::vector<T>;
+using _s     = std::string;
+using _t     = Token;
+using _pr    = std::pair< std::string, std::string >;
+using _citer = std::string::const_iterator;
+using TT     = TokenType;
+using mfunc  = std::function<vec<Token>(boost::smatch&)>;
 using bmatch = boost::match_results<std::string::const_iterator>;
 using boost::regex_search;
 
@@ -69,12 +70,12 @@ struct Token {
         : type(type), text(text), text_data(text_data) {}
 };
 
-
 class ParseMarkdown {
     private:
 //----------------------------- Maps
         // static const regex full_regex;
         static const regex full_regex;
+        static const regex inline_regex;
         static const map< const TT, mfunc >               token_funcs;
         static const std::map< const TT, const TextData > text_map;
 
@@ -106,7 +107,6 @@ class ParseMarkdown {
             }
             g.save_image(output_file);
         }
-
         void handle_code(bmatch res, vec<_t>& t) {
             t.push_back(Token(TT::CODE, res["CODE"], text_map.at(TT::CODE)));
         }
@@ -122,23 +122,30 @@ class ParseMarkdown {
             TextData g = text_map.at(htype);
             t.push_back(Token(htype, res["CONTENT"], text_map.at(htype)));
         }
+
+        // Inline for formatting that is done within the text using pango
+        _s handle_inline(_citer s, _citer e) {
+            if (s == e) { return ""; }
+            return "";
+        }
         vec<_t> to_tokens() {
             vec<_t> tokens = {};
             _s curr_str = total_str;
-            std::string::const_iterator s = total_str.begin();
-            std::string::const_iterator e = total_str.end();
+            _citer s = total_str.begin();
+            _citer e = total_str.end();
             bmatch res;
             while (regex_search(s, e, res, full_regex)) {
+                tokens.push_back(handle_inline(s, res[0].first));
                 if ( res["CODE"].matched) { 
                     handle_code(res, tokens);
                 }
                 else if ( res["HEADER"].matched ) {
                     handle_header(res, tokens);
                 }
-                else if ( res["BOLD"].matched ) {
-                    P("BOLD");
-                }
                 s = res[0].second;
+            }
+            if (s != e) {
+                tokens.push_back(handle_inline(s, e));
             }
             return tokens;
         }

@@ -40,13 +40,13 @@ ParseMarkdown::ParseMarkdown(_s file) {
     ParseMarkdown({file});
 }
 const std::map< const TT, const TextData > ParseMarkdown::text_map = {
-    { TT::CODE, TextData( 9, "Noto-Mono", "Black", "transparent") },
-    { TT::H1,   TextData(15, "Noto-Mono", "Black", "transparent") },
-    { TT::H2,   TextData(14, "Noto-Mono", "Black", "transparent") },
-    { TT::H3,   TextData(13, "Noto-Mono", "Black", "transparent") },
-    { TT::H4,   TextData(12, "Noto-Mono", "Black", "transparent") },
-    { TT::H5,   TextData(11, "Noto-Mono", "Black", "transparent") },
-    // { TT::CODE,   TextData(
+    { TT::CODE, TextData(  7, "Noto-Mono", "Green", "Black"       ) },
+    { TT::H1,   TextData( 12, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H2,   TextData( 11, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H3,   TextData( 10, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H4,   TextData(  9, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H5,   TextData(  8, "Noto-Sans", "Black", "transparent" ) },
+    { TT::TEXT, TextData(  7, "Noto-Sans", "Black", "transparent" ) }, 
 };
 
 const map<const TT, mfunc> ParseMarkdown::token_funcs {
@@ -60,11 +60,13 @@ const map<const TT, mfunc> ParseMarkdown::token_funcs {
 const regex ParseMarkdown::full_regex = regex(
     R"((```(?<CODE>.*?)```))"
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
-    R"(|(?<BOLD>(\*\*)))"
-    R"(|(?<ITALIC>(\*)))"
 // "|"     "(?<LINE>^$)"
 );
 
+const regex ParseMarkdown::inline_regex = regex(
+    R"(|(?<BOLD>(\*\*)))"
+    R"(|(?<ITALIC>(\*)))"
+);
 // void handle_code(_s total_str, vec<_t> tokens) {
 //     auto i = std::sregex_iterator(total_str.begin(), total_str.end(), token_regex.at(TT::CODE));
 //     _s pre = "";
