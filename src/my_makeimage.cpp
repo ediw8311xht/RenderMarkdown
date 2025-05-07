@@ -4,7 +4,6 @@
 using namespace MakeImageNS;
 
 namespace Mag = Magick;
-
 Image MakeImage::image_from_data(_s text, TextData t) {
     Image new_img(subimg_geo, t.bg);
     new_img.fontPointsize(t.font_size);
@@ -20,16 +19,15 @@ void MakeImage::write_image(Image& img) {
     offset_y += img.rows() + padding_y;
 }
 
-MakeImage::MakeImage(size_t x, size_t y, Color canvas_bg, int offset_y, int offset_x)
-    : canvas_size(x, y)     ,
-      subimg_geo(x, 0)      ,
-      canvas_bg(canvas_bg)  ,
-      offset_y(offset_y)    ,
+MakeImage::MakeImage(size_t x, size_t y, Color canvas_bg, size_t offset_y, size_t offset_x)
+    : canvas_size(x, y)     , subimg_geo(x, 0)      ,
+      canvas_bg(canvas_bg)  , offset_y(offset_y)    ,
       offset_x(offset_x)
-      {
-          canvas = Image({x, y}, canvas_bg);
-      }
-static void initialize(char* arg) {
+{
+  canvas = Image({x, y}, canvas_bg);
+}
+
+void MakeImage::initialize(char* arg) {
     // Must be called before making image objects
     // Pass first argument (path where program is being run)
     // See: http://www.graphicsmagick.org/Magick++/
@@ -40,7 +38,7 @@ void MakeImage::write_text(_s text, TextData t) {
     write_image(img);
 }
 
-void MakeImage::reset_image(int offset_y) {
+void MakeImage::reset_image(size_t offset_y) {
     canvas.erase();
     this->offset_y = offset_y;
 }

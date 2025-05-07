@@ -19,6 +19,8 @@ struct TextData {
     _s      font        = "Noto-Sans";
     Color   fg          = Color("black");
     Color   bg          = Color("transparent");
+    size_t padding_x    = 3;
+    size_t padding_y    = 3;
 };
 
 //|--------------------------------------------------------------------------------------|
@@ -42,17 +44,13 @@ class MakeImage {
         size_t   offset_x;
         size_t   padding_y;
         static const int line_spacing = 30;
-
         Image image_from_data(_s text, TextData t);
-
         void write_image(Image& img);
     public:
-        MakeImage(size_t x=500, size_t y=500, Color canvas_bg="white", int offset_y=0, int offset_x=0 );
         static void initialize(char* arg);
+        MakeImage(size_t x=500, size_t y=500, Color canvas_bg="white", size_t offset_y=0, size_t offset_x=0 );
         void write_text(_s text, TextData t);
-
-        void reset_image(int offset_y=0);
-
+        void reset_image(size_t offset_y=0);
         void save_image(const _s& filename);
 };
 
