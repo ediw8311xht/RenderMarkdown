@@ -24,49 +24,47 @@ namespace ParseMarkdownNS {
 
 // Declare before defining.
 typedef struct Token Token;
-// Order to check state
-enum class TokenType : int {
-    NONE   = -1,
-    CODE       ,
-    H1         ,
-    H2         ,
-    H3         ,
-    H4         ,
-    H5         ,
-    BOLD       ,
-    ITALIC     ,
-    TEXT       ,
-    END        ,
-};
+enum class TokenType : int;
 class ParseMarkdown;
 
 using MakeImageNS::MakeImage;
 using MakeImageNS::TextData;
 
+// STD
 template <typename T>
 using vec    = std::vector<T>;
 using _s     = std::string;
-using _t     = Token;
 using _pr    = std::pair< std::string, std::string >;
 using _citer = std::string::const_iterator;
-using TT     = TokenType;
 using mfunc  = std::function<vec<Token>(boost::smatch&)>;
-using bmatch = boost::match_results<std::string::const_iterator>;
-using boost::regex_search;
-
-
 using std::optional;
 using std::map;
-using boost::regex;
 using std::format;
 
+// Boost
+using bmatch = boost::match_results<std::string::const_iterator>;
+using boost::regex;
+using boost::regex_search;
+
+// Mine
+using _t     = Token;
+using TT     = TokenType;
+
+enum class TokenType : int {
+    NONE = -1   ,
+    CODE        ,
+    H1, H2, H3, H4, H5,
+    TEXT        ,
+    END         ,
+};
 
 struct Token {
-    TT type       = TT::NONE;
+    TT        type       = TT::NONE;
     _s        text       = "";
     TextData  text_data  = TextData();
+
     Token(_s text) : text(text) {}
-    Token(TT type=TT::NONE, _s text="", TextData text_data = TextData())
+    Token(TT type=TT::TEXT, _s text="", TextData text_data = TextData())
         : type(type), text(text), text_data(text_data) {}
 };
 
@@ -75,7 +73,9 @@ class ParseMarkdown {
 //----------------------------- Maps
         // static const regex full_regex;
         static const regex full_regex;
-        static const regex inline_regex;
+        static const regex bold_regex;
+        static const regex italic_regex;
+        static const regex bold_italic_regex;
         static const map< const TT, mfunc >               token_funcs;
         static const std::map< const TT, const TextData > text_map;
 
@@ -102,7 +102,6 @@ class ParseMarkdown {
             vec<_t> tokens = to_tokens();
             MakeImage g;
             for (auto [ttype, text, text_data] : tokens) {
-                P(text);
                 g.write_text(text, text_data);
             }
             g.save_image(output_file);
@@ -123,11 +122,13 @@ class ParseMarkdown {
             t.push_back(Token(htype, res["CONTENT"], text_map.at(htype)));
         }
 
-        // Inline for formatting that is done within the text using pango
-        _s handle_inline(_citer s, _citer e) {
-            if (s == e) { return ""; }
-            return "";
+        _s get_match_inline(const bmatch& res) {
+            if      ( res["BOLD"].matched   ) { return "BOLD";   }
+            else if ( res["ITALIC"].matched ) { return "ITALIC"; }
+            else    { return ""; }
         }
+        // Inline for formatting that is done within the text using pango
+        _t handle_inline(_s s);
         vec<_t> to_tokens() {
             vec<_t> tokens = {};
             _s curr_str = total_str;
@@ -135,17 +136,16 @@ class ParseMarkdown {
             _citer e = total_str.end();
             bmatch res;
             while (regex_search(s, e, res, full_regex)) {
-                tokens.push_back(handle_inline(s, res[0].first));
-                if ( res["CODE"].matched) { 
-                    handle_code(res, tokens);
-                }
-                else if ( res["HEADER"].matched ) {
-                    handle_header(res, tokens);
-                }
+                bmatch n;
+                // tokens.push_back(handle_inline(s, res[0].first));
+                tokens.push_back(handle_inline( res.prefix() ) );
+                if      ( res["CODE"].matched   ) { handle_code( res, tokens );   }
+                else if ( res["HEADER"].matched ) { handle_header( res, tokens ); }
                 s = res[0].second;
             }
             if (s != e) {
-                tokens.push_back(handle_inline(s, e));
+                tokens.push_back(handle_inline( res.prefix() ) );
+                // tokens.push_back(handle_inline(s, e));
             }
             return tokens;
         }

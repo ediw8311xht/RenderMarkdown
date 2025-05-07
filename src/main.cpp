@@ -9,14 +9,14 @@
 // namespace Mag = Magick;
 using ParseMarkdownNS::ParseMarkdown;
 using ParseMarkdownNS::Token;
-using ParseMarkdownNS::TokenType;
+// using ParseMarkdownNS::TokenType;
 using MakeImageNS::MakeImage;
 using MakeImageNS::TextData;
 
 using _s = std::string;
 template <typename T>
 using vec = std::vector<T>;
-using std::cout;
+// using std::cout;
 using std::endl;
 using std::cerr;
 using std::format;
@@ -39,7 +39,6 @@ void output_error(bool check, const char* error_message="", int exit_status=1) {
         exit(exit_status);
     }
 }
-
 
 
 void test_1() {
@@ -73,7 +72,7 @@ int main(int argc, char** argv)
     //MakeImage::initialize(*argv);
     test_3();
     //test2();
-    std::cout << "HI" << std::endl;
+    // std::cout << "HI" << std::endl;
     return 0;
 }
 
