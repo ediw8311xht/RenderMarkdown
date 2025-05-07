@@ -1,8 +1,29 @@
 #include "parse_markdown.h"
 
-#define P(A) std::cout << A << std::endl;
-
 using namespace ParseMarkdownNS;
+
+
+ParseMarkdown::ParseMarkdown(vec<_s> files) : files(files) { read_in_files(); }
+ParseMarkdown::ParseMarkdown(_s file) { ParseMarkdown({file}); }
+
+const map< const TT, const TextData > ParseMarkdown::text_map = {
+    { TT::CODE, TextData(  9, "Noto-Mono", "Green", "Black"       ) },
+    { TT::H1,   TextData( 15, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H2,   TextData( 14, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H3,   TextData( 13, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H4,   TextData( 12, "Noto-Sans", "Black", "transparent" ) },
+    { TT::H5,   TextData( 11, "Noto-Sans", "Black", "transparent" ) },
+    { TT::TEXT, TextData( 10, "Noto-Sans", "Black", "transparent" ) }, 
+};
+
+const regex ParseMarkdown::full_regex = regex(
+    R"((```(?<CODE>.*?)```))"
+    R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
+);
+
+const regex ParseMarkdown::bold_italic_regex = regex( R"(\*{3}(.+?)\*{3})" );
+const regex ParseMarkdown::bold_regex        = regex( R"(\*{2}(.+?)\*{2})" );
+const regex ParseMarkdown::italic_regex      = regex( R"(\*(.+?)\*)"       );
 
 std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
     std::ifstream file(file_string);
@@ -21,69 +42,66 @@ void ParseMarkdown::_read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::ite
     if (!o.has_value()) {
         this->errors.push_back(format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)));
     }
-    else {
-        this->total_str += o.value();
-    }
+    else { this->total_str += o.value(); }
     return _read_in_files(f, ++i, e);
 }
+
 void ParseMarkdown::read_in_files() {
     this->str_files = {};
     this->total_str = "";
     _read_in_files(this->files, this->files.begin(), this->files.end());
 }
+
 _t ParseMarkdown::handle_inline(_s s) {
-    _s out;
-    out = boost::regex_replace(s, bold_italic_regex, "<b><i>\\1</i></b>");
+    _s out = boost::regex_replace(s, bold_italic_regex, "<b><i>\\1</i></b>");
     out = boost::regex_replace(out, bold_regex, "<b>\\1</b>");
     out = boost::regex_replace(out, italic_regex, "<i>\\1</i>");
     return Token(TT::TEXT, out, text_map.at(TT::TEXT));
 }
-ParseMarkdown::ParseMarkdown(vec<_s> files)
- : files(files) {
-  read_in_files();
+
+
+vec<_t> ParseMarkdown::to_tokens() {
+    vec<_t> tokens = {};
+    _citer s = total_str.begin();
+    _citer e = total_str.end();
+    bmatch res;
+    while (regex_search(s, e, res, full_regex)) {
+        bmatch n;
+        // tokens.push_back(handle_inline(s, res[0].first));
+        tokens.push_back(handle_inline( res.prefix() ) );
+        if      ( res["CODE"].matched   ) { handle_code(   res, tokens ); }
+        else if ( res["HEADER"].matched ) { handle_header( res, tokens ); }
+        s = res[0].second;
+    }
+    if (s != e) {
+        tokens.push_back(handle_inline( _s(s, e)));
+    }
+    return tokens;
 }
 
-ParseMarkdown::ParseMarkdown(_s file) {
-    ParseMarkdown({file});
+void ParseMarkdown::make_image(_s output_file) {
+    vec<_t> tokens = to_tokens();
+    MakeImage g;
+    for (auto [ttype, text, text_data] : tokens) {
+        g.write_text(text, text_data);
+    }
+    g.save_image(output_file);
 }
-const map< const TT, const TextData > ParseMarkdown::text_map = {
-    { TT::CODE, TextData(  9, "Noto-Mono", "Green", "Black"       ) },
-    { TT::H1,   TextData( 15, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H2,   TextData( 14, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H3,   TextData( 13, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H4,   TextData( 12, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H5,   TextData( 11, "Noto-Sans", "Black", "transparent" ) },
-    { TT::TEXT, TextData( 10, "Noto-Sans", "Black", "transparent" ) }, 
-};
 
-const map<const TT, mfunc> ParseMarkdown::token_funcs {
-    { TT::CODE,
-        [](boost::smatch& m) -> vec<_t> {
-             return { _t(TT::CODE, m[0], text_map.at(TT::CODE)) };
-        }
-    },
-};
+void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res, vec<_t>& t) {
+    t.push_back(Token(TT::CODE, res["CODE"], text_map.at(TT::CODE)));
+}
 
-const regex ParseMarkdown::full_regex = regex(
-    R"((```(?<CODE>.*?)```))"
-    R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
-);
+void ParseMarkdown::handle_header(const bmatch& res, vec<_t>& t) {
+    TT htype;
+    switch (res["HEADER"].length()) {
+        case 1: htype = TT::H1; break;
+        case 2: htype = TT::H2; break;
+        case 3: htype = TT::H3; break;
+        case 4: htype = TT::H4; break;
+        case 5: htype = TT::H5; break;
+    }
+    TextData g = text_map.at(htype);
+    t.push_back(Token(htype, res["CONTENT"], text_map.at(htype)));
+}
 
-const regex ParseMarkdown::bold_italic_regex = regex( R"(\*{3}(.+?)\*{3})" );
-const regex ParseMarkdown::bold_regex        = regex( R"(\*{2}(.+?)\*{2})" );
-const regex ParseMarkdown::italic_regex      = regex( R"(\*(.+?)\*)"       );
-
-
-// void handle_code(_s total_str, vec<_t> tokens) {
-//     auto i = std::sregex_iterator(total_str.begin(), total_str.end(), token_regex.at(TT::CODE));
-//     _s pre = "";
-//     _s post = total_str;
-//     for (; i != std::sregex_iterator(); i++) {
-//         std::smatch m = *i;
-//         if ((pre = m.prefix()) != "") { tokens.push_back( { pre } ); }
-//
-//         tokens.push_back( { TT::CODE, m[0], text_map.at(TT::CODE) } );
-//         post = m.suffix();
-//     }
-//     if (post != "") { tokens.push_back( { post } ); }
-// }
