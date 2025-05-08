@@ -16,14 +16,21 @@ const map< const TT, const TextData > ParseMarkdown::text_map = {
     { TT::TEXT, TextData( 10, "Noto-Sans", "Black", "transparent" ) }, 
 };
 
-const regex ParseMarkdown::full_regex = regex(
+const regex ParseMarkdown::block_regex = regex(
     R"((```(?<CODE>.*?)```))"
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
 );
 
-const regex ParseMarkdown::bold_italic_regex = regex( R"(\*{3}(.+?)\*{3})" );
-const regex ParseMarkdown::bold_regex        = regex( R"(\*{2}(.+?)\*{2})" );
-const regex ParseMarkdown::italic_regex      = regex( R"(\*(.+?)\*)"       );
+const array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
+    pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" },
+    pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        },
+    pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        },
+    // for inline code
+    pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
+        "<span fgfamily='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' >\\1</span>"
+    },
+    // pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), ""                  }
+};
 
 std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
     std::ifstream file(file_string);
@@ -52,20 +59,12 @@ void ParseMarkdown::read_in_files() {
     _read_in_files(this->files, this->files.begin(), this->files.end());
 }
 
-_t ParseMarkdown::handle_inline(_s s) {
-    _s out = boost::regex_replace(s, bold_italic_regex, "<b><i>\\1</i></b>");
-    out = boost::regex_replace(out, bold_regex, "<b>\\1</b>");
-    out = boost::regex_replace(out, italic_regex, "<i>\\1</i>");
-    return Token(TT::TEXT, out, text_map.at(TT::TEXT));
-}
-
-
-vec<_t> ParseMarkdown::to_tokens() {
-    vec<_t> tokens = {};
+void ParseMarkdown::generate_tokens() {
+    tokens = {};
     _citer s = total_str.begin();
     _citer e = total_str.end();
     bmatch res;
-    while (regex_search(s, e, res, full_regex)) {
+    while (regex_search(s, e, res, block_regex)) {
         bmatch n;
         // tokens.push_back(handle_inline(s, res[0].first));
         tokens.push_back(handle_inline( res.prefix() ) );
@@ -76,11 +75,10 @@ vec<_t> ParseMarkdown::to_tokens() {
     if (s != e) {
         tokens.push_back(handle_inline( _s(s, e)));
     }
-    return tokens;
 }
 
 void ParseMarkdown::make_image(_s output_file) {
-    vec<_t> tokens = to_tokens();
+    generate_tokens();
     MakeImage g;
     for (auto [ttype, text, text_data] : tokens) {
         g.write_text(text, text_data);
@@ -88,6 +86,13 @@ void ParseMarkdown::make_image(_s output_file) {
     g.save_image(output_file);
 }
 
+_t ParseMarkdown::handle_inline(_s s) {
+    _s out = s;
+    for (auto& [reg, repl] : inline_regex) {
+        out = boost::regex_replace(out, reg, repl);
+    }
+    return Token(TT::TEXT, out, text_map.at(TT::TEXT));
+}
 void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res, vec<_t>& t) {
     t.push_back(Token(TT::CODE, res["CODE"], text_map.at(TT::CODE)));
 }

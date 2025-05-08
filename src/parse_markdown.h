@@ -37,6 +37,8 @@ using mfunc  = std::function<vec<Token>(boost::smatch&)>;
 using std::optional;
 using std::map;
 using std::format;
+using std::array;
+using std::pair;
 
 // Boost
 using bmatch = boost::match_results<std::string::const_iterator>;
@@ -69,10 +71,8 @@ class ParseMarkdown {
     private:
 //----------------------------- Maps
         // static const regex full_regex;
-        static const regex full_regex;
-        static const regex bold_regex;
-        static const regex italic_regex;
-        static const regex bold_italic_regex;
+        static const regex block_regex;
+        static const array< pair<regex, _s>, 4> inline_regex;
         static const std::map< const TT, const TextData > text_map;
 
 //----------------------------- Vars
@@ -80,6 +80,7 @@ class ParseMarkdown {
         vec<optional<_s>> str_files; // Lines of files
         vec<_s>           errors;
         _s                total_str; // Concenated contents of all files
+        vec<_t>           tokens = {};
 
 //----------------------------- Functions
         std::optional<_s> file_as_string(_s file_string);
@@ -89,7 +90,7 @@ class ParseMarkdown {
         void _read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::iterator e);
         void handle_code(const bmatch& res, vec<_t>& t);
         void handle_header(const bmatch& res, vec<_t>& t);
-        vec<_t> to_tokens();
+        void generate_tokens();
         // Inline for formatting that is done within the text using pango
         _t handle_inline(_s s);
     public:
@@ -98,7 +99,6 @@ class ParseMarkdown {
 
         void read_in_files();
         void make_image(_s output_file);
-
 };
 
  
