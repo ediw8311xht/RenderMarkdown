@@ -1,6 +1,8 @@
 #include "parse_markdown.h"
 
 using namespace ParseMarkdownNS;
+using Magick::ColorRGB;
+using Magick::Color;;
 
 
 ParseMarkdown::ParseMarkdown(vec<_s> files) : files(files) { read_in_files(); }
@@ -10,13 +12,13 @@ ParseMarkdown::ParseMarkdown(_s file) {
 }
 
 const map< const TT, const TextData > ParseMarkdown::text_map = {
-    { TT::CODE, TextData(  9, "Noto-Mono", {0, 255, 0} ) }, // , "black"       ) },
-    { TT::H1,   TextData( 15, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
-    { TT::H2,   TextData( 14, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
-    { TT::H3,   TextData( 13, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
-    { TT::H4,   TextData( 12, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
-    { TT::H5,   TextData( 11, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
-    { TT::TEXT, TextData( 10, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) }, 
+    { TT::CODE, TextData(  9, "Noto-Mono", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::H1,   TextData( 15, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::H2,   TextData( 14, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::H3,   TextData( 13, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::H4,   TextData( 12, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::H5,   TextData( 11, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) },
+    { TT::TEXT, TextData( 10, "Noto-Sans", ColorRGB(0, 0, 0) , Color("transparent") ) }, 
 };
 
 const regex ParseMarkdown::block_regex = regex(
@@ -24,14 +26,14 @@ const regex ParseMarkdown::block_regex = regex(
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
 );
 
-const array< pair<regex, _s>, 3> ParseMarkdown::inline_regex = {
+const array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" },
     pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        },
     pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        },
     // for inline code
-    // pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
-    //     "<span fgfamily='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' >\\1</span>"
-    // },
+    pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
+        "<span font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' >\\1</span>"
+    },
     // pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), ""                  }
 };
 

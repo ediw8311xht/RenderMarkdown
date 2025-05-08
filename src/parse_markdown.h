@@ -72,7 +72,7 @@ class ParseMarkdown {
 //----------------------------- Maps
         // static const regex full_regex;
         static const regex block_regex;
-        static const array< pair<regex, _s>, 3> inline_regex;
+        static const array< pair<regex, _s>, 4> inline_regex;
         static const std::map< const TT, const TextData > text_map;
 
 //----------------------------- Vars

@@ -11,15 +11,16 @@ namespace MakeImageNS {
 typedef struct TextData TextData;
 using _s    = std::string;
 using Magick::Color;
+using Magick::ColorRGB;
 // using Magick::StyleType;
 using Magick::Image;
 using Magick::Geometry;
 struct TextData {
     double  font_size   = 12;
     _s      font        = "Noto-Sans";
-    Color   fg          = Color("black");
+    ColorRGB   fg       = ColorRGB(0, 0, 0);
     Color   bg          = Color("transparent");
-    TextData(double font_size=12, _s font="Noto-Sans", Color fg=Color("black"), Color bg=Color("transparent")) :
+    TextData(double font_size=12, _s font="Noto-Sans", ColorRGB fg=ColorRGB(0, 0, 0), Color bg=Color("transparent")) :
         font_size(font_size), font(font), fg(fg), bg(bg) {}
 };
 

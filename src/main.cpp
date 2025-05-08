@@ -78,11 +78,6 @@ int main(int argc, char** argv)
     string out_file = "/home/maceurt/Desktop/SCHOOL/COMP_SCI_II/final_proj/STATIC_FILES/out.jpg";
     ParseMarkdown f(test_file);
     f.make_image(out_file);
-    // g.fg = Magick::Color(0, 255, 0);
-    // g.bg = Magick::Color(255, 255, 255);
-    // a.write_text("HI", g);
-    // a.write_text("HI", g);
-    // a.save_image(out_file);
 
     return 0;
 }
