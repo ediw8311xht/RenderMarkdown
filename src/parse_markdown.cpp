@@ -4,7 +4,10 @@ using namespace ParseMarkdownNS;
 
 
 ParseMarkdown::ParseMarkdown(vec<_s> files) : files(files) { read_in_files(); }
-ParseMarkdown::ParseMarkdown(_s file) { ParseMarkdown({file}); }
+ParseMarkdown::ParseMarkdown(_s file) {
+    this->files = vec<_s>({file});
+    read_in_files();
+}
 
 const map< const TT, const TextData > ParseMarkdown::text_map = {
     { TT::CODE, TextData(  9, "Noto-Mono", "Green", "Black"       ) },
@@ -21,14 +24,14 @@ const regex ParseMarkdown::block_regex = regex(
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
 );
 
-const array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
+const array< pair<regex, _s>, 3> ParseMarkdown::inline_regex = {
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" },
     pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        },
     pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        },
     // for inline code
-    pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
-        "<span fgfamily='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' >\\1</span>"
-    },
+    // pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
+    //     "<span fgfamily='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' >\\1</span>"
+    // },
     // pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), ""                  }
 };
 
@@ -47,7 +50,8 @@ void ParseMarkdown::_read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::ite
     std::optional<_s> o = file_as_string(*i);
     this->str_files.push_back(o);
     if (!o.has_value()) {
-        this->errors.push_back(format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)));
+        std::cerr << format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
+        exit(2);
     }
     else { this->total_str += o.value(); }
     return _read_in_files(f, ++i, e);

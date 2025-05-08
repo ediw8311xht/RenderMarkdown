@@ -1,33 +1,42 @@
 #include <iostream>
-#include <stdlib.h>
 #include "parse_markdown.h"
 #include "my_makeimage.h"
 #include <filesystem>
 #define HELP_STRING \
  "ParseMarkdown: [options] [input-file] [output-file]\n" \
- "    [options]     : --help    - print help \n" \
- "                    --xpos    - Not implemented \n" \
- "                    --xpos    - Not implemented \n" \
- "                    --width:  - Not implemented \n" \
- "                    --height  - Not implemented \n" \
- "    [input-file]  : Markdown formatted input file.\n" \
- "    [output-file] : (Image file to output) or ('-') to output to terminal (must have kitty).\n"
-
+ "\tOptions \n" \
+ "\t\t--help    - print help \n" \
+ "\t\t--xpos    - Not implemented \n" \
+ "\t\t--xpos    - Not implemented \n" \
+ "\t\t--width:  - Not implemented \n" \
+ "\t\t--height  - Not implemented \n" \
+ "\tArguments \n" \
+ "\t\t[input-file]  : Markdown formatted input file.\n" \
+ "\t\t[output-file] : (Image file to output) or ('-') to output to terminal (must have kitty).\n" \
+ "\tExit Status \n" \
+ "\t\t0\tGood \n" \
+ "\t\t1\tArgument Error\n" \
+ "\t\t2\tFile Error\n" \
+ "\t\t3\tWrite Error\n"
 
 
 using ParseMarkdownNS::ParseMarkdown;
 using MakeImageNS::MakeImage;
 
+using std::filesystem::exists;
 using std::cout;
 using std::endl;
-using std::strcmp;
 using std::string;
+using std::format;
 
 void print_help(int exit_code=0) {
     cout << HELP_STRING << endl;
     exit(exit_code);
 }
 
+void handle_error(bool f, string s, int exit_code=1) {
+    if (f) { std::cerr << s << endl; exit(exit_code); }
+}
 typedef struct ProgArgs {
     string input_file  = "";
     // For terminal output use "-"
@@ -36,35 +45,34 @@ typedef struct ProgArgs {
     size_t img_height  = 800;
 } ProgArgs;
 
-bool comp(char* s, const char* e) {
-    while (*s != '\0' && *e != '\0' ) {
-        if (*s != *e) { return false; }
-        s++; e++;
-    }
-    return true;
-}
 void handle_args(int argc, char** argv) {
-    using std::filesystem::exists;
-    cout << argv[1] << endl;
-    if (argc >= 2 && comp(argv[1], "--help"))  {
-        cout << argv[1] << endl;
-        print_help(); exit(0);
-    }
-    ProgArgs pa;
-    for (int i = 1; i < argc; i++) {
-        switch (i) {
-            case (1) : pa.input_file=argv[i]; break;
-            case (2) : pa.output_file=argv[i]; break;
-            default  : print_help(1);
-        }
-    }
+    // if (argc == 0 || (argc >= 1 && string("--help") == argv[1]))  {
+    //     print_help(); exit(0);
+    // }
+    // ProgArgs pa;
+    // for (int i = 1; i < argc+1; i++) {
+    //     switch (i) {
+    //         case (1) :
+    //             pa.input_file=string(argv[i]); break;
+    //         case (2) :
+    //             pa.output_file=string(argv[i]); break;
+    //         default  : print_help(1);
+    //     }
+    // }
+    // handle_error( !exists(pa.input_file),
+    //         format("Input file '{}' doesn't exists.", pa.input_file), 2);
+    // handle_error( pa.output_file != "-" && exists(pa.output_file),
+    //         format("Output file '{}' already exists.", pa.output_file), 2);
+    // ParseMarkdown f(pa.input_file);
+    // f.make_image(pa.output_file, pa.img_width, pa.img_height);
 }
 
 int main(int argc, char** argv)
 {
-    cout << argc << endl;
     MakeImage::initialize(*argv);
-    handle_args(argc, argv);
+    //handle_args(argc-1, argv);
+    ParseMarkdown f("STATIC_FILES/test.md");
+    f.make_image("output2.jpg");
     return 0;
 }
 

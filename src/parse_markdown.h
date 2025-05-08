@@ -72,13 +72,12 @@ class ParseMarkdown {
 //----------------------------- Maps
         // static const regex full_regex;
         static const regex block_regex;
-        static const array< pair<regex, _s>, 4> inline_regex;
+        static const array< pair<regex, _s>, 3> inline_regex;
         static const std::map< const TT, const TextData > text_map;
 
 //----------------------------- Vars
-        vec<_s>           files; // Names of markdown files
+        vec<_s>           files = {}; // Names of markdown files
         vec<optional<_s>> str_files; // Lines of files
-        vec<_s>           errors;
         _s                total_str; // Concenated contents of all files
         vec<_t>           tokens = {};
 
@@ -94,8 +93,9 @@ class ParseMarkdown {
         // Inline for formatting that is done within the text using pango
         _t handle_inline(_s s);
     public:
-        ParseMarkdown(vec<_s> files={});
-        ParseMarkdown(_s file);
+        explicit ParseMarkdown(vec<_s> files={});
+
+        explicit ParseMarkdown(_s file);
 
         void read_in_files();
         void make_image(_s output_file);

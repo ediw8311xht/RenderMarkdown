@@ -46,3 +46,4 @@ void MakeImage::reset_image(size_t offset_y) {
 void MakeImage::save_image(const _s& filename) {
     canvas.write(filename);
 }
+
