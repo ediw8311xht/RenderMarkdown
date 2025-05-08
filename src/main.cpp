@@ -1,4 +1,5 @@
 #include <iostream>
+#include <Magick++.h>
 #include "parse_markdown.h"
 #include "my_makeimage.h"
 #include <filesystem>
@@ -20,8 +21,10 @@
  "\t\t3\tWrite Error\n"
 
 
+using Magick::InitializeMagick;
 using ParseMarkdownNS::ParseMarkdown;
-using MakeImageNS::MakeImage;
+// using MakeImageNS::MakeImage;
+using namespace MakeImageNS;
 
 using std::filesystem::exists;
 using std::cout;
@@ -69,10 +72,18 @@ void handle_args(int argc, char** argv) {
 
 int main(int argc, char** argv)
 {
-    MakeImage::initialize(*argv);
+    InitializeMagick(*argv);
     //handle_args(argc-1, argv);
-    ParseMarkdown f("STATIC_FILES/test.md");
-    f.make_image("output2.jpg");
+    string test_file = "/home/maceurt/Desktop/SCHOOL/COMP_SCI_II/final_proj/STATIC_FILES/test.md";
+    string out_file = "/home/maceurt/Desktop/SCHOOL/COMP_SCI_II/final_proj/STATIC_FILES/out.jpg";
+    ParseMarkdown f(test_file);
+    f.make_image(out_file);
+    // g.fg = Magick::Color(0, 255, 0);
+    // g.bg = Magick::Color(255, 255, 255);
+    // a.write_text("HI", g);
+    // a.write_text("HI", g);
+    // a.save_image(out_file);
+
     return 0;
 }
 

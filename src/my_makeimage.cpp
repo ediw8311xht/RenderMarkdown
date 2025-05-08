@@ -6,6 +6,7 @@ using namespace MakeImageNS;
 namespace Mag = Magick;
 Image MakeImage::image_from_data(_s text, TextData t) {
     Image new_img(subimg_geo, t.bg);
+    new_img.fontFamily(t.font);
     new_img.fontPointsize(t.font_size);
     new_img.fillColor(t.fg);
     // `pango:` allowing pango formatting wwth `<b>`, `<i>`, etc.
@@ -16,10 +17,10 @@ Image MakeImage::image_from_data(_s text, TextData t) {
 void MakeImage::write_image(Image& img) {
     canvas.composite(img, offset_x, offset_y, Mag::OverCompositeOp);
     // Update offset to adjust for written image
-    offset_y += img.rows() + padding_y;
+    offset_y += img.rows() + 30;
 }
 
-MakeImage::MakeImage(size_t x, size_t y, Color canvas_bg, size_t offset_y, size_t offset_x)
+MakeImage::MakeImage(size_t x, size_t y, Color canvas_bg, ssize_t offset_y, ssize_t offset_x)
     : canvas_size(x, y)     , subimg_geo(x, 0)      ,
       canvas_bg(canvas_bg)  , offset_y(offset_y)    ,
       offset_x(offset_x)

@@ -10,13 +10,13 @@ ParseMarkdown::ParseMarkdown(_s file) {
 }
 
 const map< const TT, const TextData > ParseMarkdown::text_map = {
-    { TT::CODE, TextData(  9, "Noto-Mono", "Green", "Black"       ) },
-    { TT::H1,   TextData( 15, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H2,   TextData( 14, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H3,   TextData( 13, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H4,   TextData( 12, "Noto-Sans", "Black", "transparent" ) },
-    { TT::H5,   TextData( 11, "Noto-Sans", "Black", "transparent" ) },
-    { TT::TEXT, TextData( 10, "Noto-Sans", "Black", "transparent" ) }, 
+    { TT::CODE, TextData(  9, "Noto-Mono", {0, 255, 0} ) }, // , "black"       ) },
+    { TT::H1,   TextData( 15, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
+    { TT::H2,   TextData( 14, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
+    { TT::H3,   TextData( 13, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
+    { TT::H4,   TextData( 12, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
+    { TT::H5,   TextData( 11, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) },
+    { TT::TEXT, TextData( 10, "Noto-Sans", {0, 255, 0} ) }, // , "transparent" ) }, 
 };
 
 const regex ParseMarkdown::block_regex = regex(
@@ -85,7 +85,9 @@ void ParseMarkdown::make_image(_s output_file) {
     generate_tokens();
     MakeImage g;
     for (auto [ttype, text, text_data] : tokens) {
-        g.write_text(text, text_data);
+        if (text != "") {
+            g.write_text(text, text_data);
+        }
     }
     g.save_image(output_file);
 }
