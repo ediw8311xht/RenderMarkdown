@@ -16,12 +16,11 @@ using Magick::ColorRGB;
 using Magick::Image;
 using Magick::Geometry;
 struct TextData {
-    double  font_size   = 12;
-    _s      font        = "Noto-Sans";
-    ColorRGB   fg       = ColorRGB(0, 0, 0);
-    Color   bg          = Color("transparent");
-    TextData(double font_size=12, _s font="Noto-Sans", ColorRGB fg=ColorRGB(0, 0, 0), Color bg=Color("transparent")) :
-        font_size(font_size), font(font), fg(fg), bg(bg) {}
+    double   font_size   = 12;
+    _s       font        = "Noto-Sans";
+    ColorRGB fg          = ColorRGB(0, 0, 0);
+    Color    bg          = Color("transparent");
+    bool     wrap        = false;
 };
 
 //|--------------------------------------------------------------------------------------|
@@ -42,20 +41,19 @@ class MakeImage {
         Geometry subimg_geo;
         Color    canvas_bg;
         ssize_t   offset_y;
-        ssize_t   offset_x;
-        size_t   padding_y;
-        static const int line_spacing = 30;
+        size_t    padding;
+        static const int line_spacing = 3;
 
         Image image_from_data(_s text, TextData t);
+        Image image_from_data_unwrapped(_s text, TextData t);
 
         void write_image(Image& img);
     public:
-        MakeImage(size_t x=500, size_t y=500, Color canvas_bg="white", ssize_t offset_y=0, ssize_t offset_x=0 );
+        MakeImage(size_t width=500, size_t height=500, Color canvas_bg="white",  size_t padding=20);
         static void initialize(char* arg);
+        double get_height(Image& img, const _s& text);
         void write_text(_s text, TextData t);
-
         void reset_image(size_t offset_y=0);
-
         void save_image(const _s& filename);
 };
 

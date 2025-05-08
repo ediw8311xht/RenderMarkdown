@@ -51,26 +51,26 @@ using TT     = TokenType;
 
 enum class TokenType : int {
     NONE = -1   ,
-    CODE        ,
-    H1, H2, H3, H4, H5,
-    TEXT        ,
-    END         ,
+    CODE = 0    ,
+    H1=1, H2=2, H3=3, H4=4, H5=5,
+    TEXT=6      ,
+    END=7       ,
 };
 
 struct Token {
     TT        type       = TT::NONE;
     _s        text       = "";
-    TextData  text_data  = TextData();
 
     Token(_s text) : text(text) {}
     Token(TT type=TT::TEXT, _s text="", TextData text_data = TextData())
-        : type(type), text(text), text_data(text_data) {}
+        : type(type), text(text) {}
 };
 
 class ParseMarkdown {
     private:
 //----------------------------- Maps
         // static const regex full_regex;
+        static const regex replace_chars;
         static const regex block_regex;
         static const array< pair<regex, _s>, 4> inline_regex;
         static const std::map< const TT, const TextData > text_map;
@@ -87,18 +87,20 @@ class ParseMarkdown {
         // optional<string> so value returned can indicate when there is an
         // issue with opening the file.
         void _read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::iterator e);
-        void handle_code(const bmatch& res, vec<_t>& t);
-        void handle_header(const bmatch& res, vec<_t>& t);
+        void handle_code(const bmatch& res);
+        void handle_header(const bmatch& res);
         void generate_tokens();
+        // Text must be cleaned since both pango and Magick++ use certain characters for formatting 
+        _s   clean_text(_s s);
         // Inline for formatting that is done within the text using pango
-        _t handle_inline(_s s);
+        void handle_inline(_s s);
     public:
+        // Explicit since reading in files happens when intialized.
         explicit ParseMarkdown(vec<_s> files={});
-
         explicit ParseMarkdown(_s file);
 
         void read_in_files();
-        void make_image(_s output_file);
+        void make_image(_s output_file, size_t image_width=1000, size_t image_height=800);
 };
 
  

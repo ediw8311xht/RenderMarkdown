@@ -49,36 +49,31 @@ typedef struct ProgArgs {
 } ProgArgs;
 
 void handle_args(int argc, char** argv) {
-    // if (argc == 0 || (argc >= 1 && string("--help") == argv[1]))  {
-    //     print_help(); exit(0);
-    // }
-    // ProgArgs pa;
-    // for (int i = 1; i < argc+1; i++) {
-    //     switch (i) {
-    //         case (1) :
-    //             pa.input_file=string(argv[i]); break;
-    //         case (2) :
-    //             pa.output_file=string(argv[i]); break;
-    //         default  : print_help(1);
-    //     }
-    // }
-    // handle_error( !exists(pa.input_file),
-    //         format("Input file '{}' doesn't exists.", pa.input_file), 2);
-    // handle_error( pa.output_file != "-" && exists(pa.output_file),
-    //         format("Output file '{}' already exists.", pa.output_file), 2);
-    // ParseMarkdown f(pa.input_file);
-    // f.make_image(pa.output_file, pa.img_width, pa.img_height);
+    if (argc == 0 || (argc >= 1 && string("--help") == argv[1]))  {
+        print_help(); exit(0);
+    }
+    ProgArgs pa;
+    for (int i = 1; i < argc+1; i++) {
+        switch (i) {
+            case (1) :
+                pa.input_file=string(argv[i]); break;
+            case (2) :
+                pa.output_file=string(argv[i]); break;
+            default  : print_help(1);
+        }
+    }
+    handle_error( !exists(pa.input_file),
+            format("Input file '{}' doesn't exists.", pa.input_file), 2);
+    handle_error( pa.output_file != "-" && exists(pa.output_file),
+            format("Output file '{}' already exists.", pa.output_file), 2);
+    ParseMarkdown f(pa.input_file);
+    f.make_image(pa.output_file, pa.img_width, pa.img_height);
 }
 
 int main(int argc, char** argv)
 {
     InitializeMagick(*argv);
-    //handle_args(argc-1, argv);
-    string test_file = "/home/maceurt/Desktop/SCHOOL/COMP_SCI_II/final_proj/STATIC_FILES/test.md";
-    string out_file = "/home/maceurt/Desktop/SCHOOL/COMP_SCI_II/final_proj/STATIC_FILES/out.jpg";
-    ParseMarkdown f(test_file);
-    f.make_image(out_file);
-
+    handle_args(argc-1, argv);
     return 0;
 }
 
