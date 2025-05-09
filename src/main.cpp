@@ -10,10 +10,6 @@
  "\tOptions \n" \
  "\t\t--help    - print help \n" \
  "\t\t--test    - run tests  \n" \
- "\t\t--xpos    - Not implemented \n" \
- "\t\t--xpos    - Not implemented \n" \
- "\t\t--width:  - Not implemented \n" \
- "\t\t--height  - Not implemented \n" \
  "\tArguments \n" \
  "\t\t[input-file]  : Markdown formatted input file.\n" \
  "\t\t[output-file] : (Image file to output) or ('-') to output to terminal (must have kitty).\n" \
@@ -56,11 +52,13 @@ void exit_help(int exit_code=0) {
 void exit_tests() {
     TestRenderMarkdown a;
     a.run_all();
+    exit(0);
 }
 
 void exit_run(ProgArgs pa) {
     ParseMarkdown f(pa.input_files);
     f.make_image(pa.output_file, pa.img_width, pa.img_height);
+    exit(0);
 }
 
 // |-------------------------------------|
@@ -70,10 +68,10 @@ void handle_args(vector<string>& arguments) {
     
     ProgArgs pa;
     auto i = arguments.begin();
+    if      (*i == "--test") {  exit_tests();  }   
+    else if (*i == "--help") {  exit_help(); }
     for (; i < arguments.end() - 1; i++) {
-        if      (*i == "--test") {  exit_tests();  }   
-        else if (*i == "--help") {  exit_help(); }
-        else if ( i->length() > 2 && i->starts_with("--") ) {
+        if ( i->length() > 2 && i->starts_with("--") ) {
             exit_error(true, format("Unknown Option: '{}'.", *i), 1);
         }
         else {
@@ -81,7 +79,8 @@ void handle_args(vector<string>& arguments) {
             pa.input_files.push_back(*i);
         }
     }
-    exit_error( !exists(*i), format("Output file '{}' already exists.", pa.output_file), 2);
+    exit_error( pa.input_files.size() <= 0, "No input files provided.", 1);
+    exit_error( exists(*i), format("Output file '{}' already exists.", pa.output_file), 2);
     pa.output_file = *i;
     exit_run(pa);
 }
