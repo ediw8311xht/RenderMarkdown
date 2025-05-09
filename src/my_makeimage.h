@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <Magick++.h>
+#include <string>
 
 namespace MakeImageNS {
 
@@ -15,6 +16,8 @@ using Magick::ColorRGB;
 // using Magick::StyleType;
 using Magick::Image;
 using Magick::Geometry;
+
+using _stype = std::string::size_type;
 
 // Store text settings
 struct TextData {
@@ -53,6 +56,7 @@ class MakeImage {
 
         void write_image(Image& img);
     public:
+        static void send_data(const _s& s, _stype i = 0, _stype size=0, bool start=true);
         static void initialize(char* arg);
         static double get_height(Image& img, const _s& text);
         MakeImage(size_t width=800, size_t height=1000, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
@@ -62,6 +66,8 @@ class MakeImage {
         void write_text(_s text, const TextData& t);
         void reset_image();
         void save_image(const _s& filename);
+        // More information here: https://sw.kovidgoyal.net/kitty/graphics-protocol/
+        void display_image_kitty();
 };
 
 }

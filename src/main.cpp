@@ -10,6 +10,7 @@
  "\tOptions \n" \
  "\t\t--help    - print help \n" \
  "\t\t--test    - run tests  \n" \
+ "\t\t--display - display    \n" \
  "\tArguments \n" \
  "\t\t[input-file]  : Markdown formatted input file.\n" \
  "\t\t[output-file] : (Image file to output) or ('-') to output to terminal (must have kitty).\n" \
@@ -34,7 +35,7 @@ using std::vector;
 typedef struct ProgArgs {
     vector<string> input_files = {};
     // For terminal output use "-"
-    string output_file = "out.jpeg";
+    string output_file = "";
     size_t img_width   = 800;
     size_t img_height  = 1000;
 } ProgArgs;
@@ -64,15 +65,24 @@ void exit_run(ProgArgs pa) {
 // |-------------------------------------|
 // | Handles options and arguments.      |
 // |-------------------------------------|
+void handle_options(ProgArgs& pa, string s) {
+    if      (s == "--test")    {  exit_tests();  }   
+    else if (s == "--help")    {  exit_help(); }
+    else if (s == "--display") {  pa.output_file = "-"; }
+    else {
+        exit_error(true, format("Unknown Option: '{}'.", s), 1);
+    }
+}
 void handle_args(vector<string>& arguments) {
     
     ProgArgs pa;
     auto i = arguments.begin();
-    if      (*i == "--test") {  exit_tests();  }   
-    else if (*i == "--help") {  exit_help(); }
-    for (; i < arguments.end() - 1; i++) {
-        if ( i->length() > 2 && i->starts_with("--") ) {
-            exit_error(true, format("Unknown Option: '{}'.", *i), 1);
+    auto e = arguments.end();
+    for (; i < e; i++) {
+        if ( i->starts_with("--") ) { handle_options(pa, *i); }
+        else if (pa.output_file != "-" && i == (e-1)) {
+            exit_error( exists(*i), format("Ouput file '{}' already exists.", *i), 2);
+            pa.output_file = *i;
         }
         else {
             exit_error( !exists(*i), format("Input file '{}' doesn't exists.", *i), 2);
@@ -80,8 +90,6 @@ void handle_args(vector<string>& arguments) {
         }
     }
     exit_error( pa.input_files.size() <= 0, "No input files provided.", 1);
-    exit_error( exists(*i), format("Output file '{}' already exists.", (*i)), 2);
-    pa.output_file = *i;
     exit_run(pa);
 }
 

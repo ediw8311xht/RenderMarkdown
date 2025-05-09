@@ -1,10 +1,21 @@
+#include <iostream>
 #include "my_makeimage.h"
 #include <cmath> // for std::ceil
+// Helpful macro
+#define P(A) std::cout << A
+// Begins each chunk
+#define CHUNK_SEP "\e_G"
+// Ends each chunk
+#define CHUNK_END "\e\\"
+// a=T automatically sets position and size of image to display f=100 is for PNG
+#define DISPLAY_SETTING "a=T,f=100,"
+#define BEGIN_DATA_SIZE 13
 
 using namespace MakeImageNS;
 
 namespace Mag = Magick;
 using Magick::TypeMetric;
+using Magick::Blob;
 
 // Get height using Magick::TypeMetric
 // Image Geometry doesn't matter, but settings for image like fontPointsize must be set
@@ -91,6 +102,36 @@ void MakeImage::write_text(_s text, const TextData& t) {
 void MakeImage::reset_image() {
     canvas.erase();
     this->offset_y = padding;
+}
+
+// This chunks data in to 4096 chars
+void MakeImage::send_data(const _s& s, _stype i, _stype size, bool start) {
+    P(CHUNK_SEP);
+    if (start) {
+        P(DISPLAY_SETTING);
+        size = s.length();
+    }
+    // If not full chunk no m=1
+    _stype ni = i+4096;
+    P( (ni <= size ? "m=1;" : ";") );
+    P(s.substr(i, 4096));
+    P(CHUNK_END);
+    return ni < size ? send_data(s, ni, size, false) : void();
+}
+// Display to terminal
+void MakeImage::display_image_kitty() {
+    Blob b;
+    // We need to PNG this format for matching Kitty Graphics Protocol Specs
+    // Note: KGP supports sending rgb/rgba data as well (more difficult tbh)
+    canvas.magick("PNG");
+    canvas.write(&b);
+    // Needs to be base64 encoded
+    _s s = b.base64();
+    // Start sending streamed data
+    // Data is sent straight to terminal using escape sequences which are interpreted by Kitty.
+
+    // Data must be chunked in 4096 chars
+    send_data(s);
 }
 
 void MakeImage::save_image(const _s& filename) {

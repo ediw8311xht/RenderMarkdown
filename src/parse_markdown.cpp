@@ -82,7 +82,8 @@ void ParseMarkdown::make_image(_s output_file, size_t image_width, size_t image_
     for (auto& [type, text] : tokens) {
         g.write_text(text, text_map.at(type));
     }
-    g.save_image(output_file);
+    if (output_file == "-") { g.display_image_kitty();   }
+    else                    { g.save_image(output_file); }
 }
 
 void ParseMarkdown::generate_tokens() {
@@ -144,10 +145,5 @@ void ParseMarkdown::handle_header(const bmatch& res) {
     }
     tokens.push_back({htype, clean_text(res["CONTENT"])});
 }
-
-
-
-
-
 
 
