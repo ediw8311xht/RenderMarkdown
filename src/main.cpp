@@ -1,12 +1,15 @@
 #include <iostream>
 #include <Magick++.h>
 #include "parse_markdown.h"
+#include "test.h"
 #include "my_makeimage.h"
 #include <filesystem>
+#include <vector>
 #define HELP_STRING \
- "ParseMarkdown: [options] [input-file] [output-file]\n" \
+ "RenderMarkdown: [options] [input-file] [output-file]\n" \
  "\tOptions \n" \
  "\t\t--help    - print help \n" \
+ "\t\t--test    - run tests  \n" \
  "\t\t--xpos    - Not implemented \n" \
  "\t\t--xpos    - Not implemented \n" \
  "\t\t--width:  - Not implemented \n" \
@@ -23,57 +26,73 @@
 
 using Magick::InitializeMagick;
 using ParseMarkdownNS::ParseMarkdown;
-// using MakeImageNS::MakeImage;
-using namespace MakeImageNS;
+using TestRenderMarkdownNS::TestRenderMarkdown;
 
 using std::filesystem::exists;
 using std::cout;
 using std::endl;
 using std::string;
 using std::format;
+using std::vector;
 
-void print_help(int exit_code=0) {
+typedef struct ProgArgs {
+    vector<string> input_files = {};
+    // For terminal output use "-"
+    string output_file = "out.jpeg";
+    size_t img_width   = 800;
+    size_t img_height  = 1000;
+} ProgArgs;
+
+// |-------------------------------------|
+// | exit_TYPE: Exit points for program. |
+// |-------------------------------------|
+void exit_error(bool f, string s, int exit_code=1) {
+    if (f) { std::cerr << s << endl; exit(exit_code); }
+}
+void exit_help(int exit_code=0) {
     cout << HELP_STRING << endl;
     exit(exit_code);
 }
-
-void handle_error(bool f, string s, int exit_code=1) {
-    if (f) { std::cerr << s << endl; exit(exit_code); }
+void exit_tests() {
+    TestRenderMarkdown a;
+    a.run_all();
 }
-typedef struct ProgArgs {
-    string input_file  = "";
-    // For terminal output use "-"
-    string output_file = "out.jpeg";
-    size_t img_width   = 1000;
-    size_t img_height  = 800;
-} ProgArgs;
 
-void handle_args(int argc, char** argv) {
-    if (argc == 0 || (argc >= 1 && string("--help") == argv[1]))  {
-        print_help(); exit(0);
-    }
+void exit_run(ProgArgs pa) {
+    ParseMarkdown f(pa.input_files);
+    f.make_image(pa.output_file, pa.img_width, pa.img_height);
+}
+
+// |-------------------------------------|
+// | Handles options and arguments.      |
+// |-------------------------------------|
+void handle_args(vector<string>& arguments) {
+    
     ProgArgs pa;
-    for (int i = 1; i < argc+1; i++) {
-        switch (i) {
-            case (1) :
-                pa.input_file=string(argv[i]); break;
-            case (2) :
-                pa.output_file=string(argv[i]); break;
-            default  : print_help(1);
+    auto i = arguments.begin();
+    for (; i < arguments.end() - 1; i++) {
+        if      (*i == "--test") {  exit_tests();  }   
+        else if (*i == "--help") {  exit_help(); }
+        else if ( i->length() > 2 && i->starts_with("--") ) {
+            exit_error(true, format("Unknown Option: '{}'.", *i), 1);
+        }
+        else {
+            exit_error( !exists(*i), format("Input file '{}' doesn't exists.", *i), 2);
+            pa.input_files.push_back(*i);
         }
     }
-    handle_error( !exists(pa.input_file),
-            format("Input file '{}' doesn't exists.", pa.input_file), 2);
-    handle_error( pa.output_file != "-" && exists(pa.output_file),
-            format("Output file '{}' already exists.", pa.output_file), 2);
-    ParseMarkdown f(pa.input_file);
-    f.make_image(pa.output_file, pa.img_width, pa.img_height);
+    exit_error( !exists(*i), format("Output file '{}' already exists.", pa.output_file), 2);
+    pa.output_file = *i;
+    exit_run(pa);
 }
 
 int main(int argc, char** argv)
 {
     InitializeMagick(*argv);
-    handle_args(argc-1, argv);
+    vector<string> arguments = {};
+    if (argc <= 1) { exit_help(); }
+    for (int i = 1; i < argc; i++) { arguments.push_back(string(argv[i])); }
+    handle_args(arguments);
     return 0;
 }
 

@@ -1,3 +1,11 @@
+```
+cout << "Success?" << endl;
+Let's see if spaces work correctly:
+
+cout << "Success?" << endl;
+This long line shouldn't be wrapped.
+No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping
+
 #include <iostream>
 #include "test.h"
 #include <filesystem>
@@ -15,30 +23,25 @@ const map<string, test_function> TestRenderMarkdown::test_map = {
     {"together",    &TestRenderMarkdown::test_together},
 };
 
-void TestRenderMarkdown::test_bold_italic() {
+void test_bold_italic() {
     ParseMarkdown a("TEST_FILES/test_bold_italic.md");
     a.make_image("TEST_FILES/test_bold_italic.jpeg");
 }
-void TestRenderMarkdown::test_code() {
+void test_code() {
     ParseMarkdown a("TEST_FILES/test_code.md");
     a.make_image("TEST_FILES/test_code.jpeg");
 
 }
-void TestRenderMarkdown::test_header() {
+void test_header() {
     ParseMarkdown a("TEST_FILES/test_header.md");
     a.make_image("TEST_FILES/test_header.jpeg");
 }
-void TestRenderMarkdown::test_together() {
+void test_together() {
     ParseMarkdown a("TEST_FILES/test_together.md");
     a.make_image("TEST_FILES/test_together.jpeg");
 }
 
 void TestRenderMarkdown::run(string test) {
-    std::cout << "Running test: " + test << std::endl;
     test_map.at(test)(*this);
 }
-void TestRenderMarkdown::run_all() {
-    for (auto& [i, _f] : test_map) {
-        run(i);
-    }
-}
+```

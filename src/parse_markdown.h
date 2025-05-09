@@ -33,7 +33,6 @@ using vec    = std::vector<T>;
 using _s     = std::string;
 using _pr    = std::pair< std::string, std::string >;
 using _citer = std::string::const_iterator;
-using mfunc  = std::function<vec<Token>(boost::smatch&)>;
 using std::optional;
 using std::map;
 using std::format;
