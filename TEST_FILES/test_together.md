@@ -12,14 +12,17 @@ Inline Code `char inline[] = "inline";` end inline code.
 
 #### Header 4
 Here is a Code Block:
-```
-cout << "Success?" << endl;
-Let's see if spaces work correctly:
 
-cout << "Success?" << endl;
-This long line shouldn't be wrapped.
-No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping No wrapping
 ```
+#include <iostream>
+cout << "Success?" << endl;
+cout << "Success?" << endl;
+int a = 0;
+int main() {
+    std::cout << "This is C++, GLOW" << std::endl;
+}
+```
+
 Pretty cool.
 
 ##### Header 5

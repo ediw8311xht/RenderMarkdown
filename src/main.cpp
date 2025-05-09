@@ -80,14 +80,15 @@ void handle_args(vector<string>& arguments) {
         }
     }
     exit_error( pa.input_files.size() <= 0, "No input files provided.", 1);
-    exit_error( exists(*i), format("Output file '{}' already exists.", pa.output_file), 2);
+    exit_error( exists(*i), format("Output file '{}' already exists.", (*i)), 2);
     pa.output_file = *i;
     exit_run(pa);
 }
 
 int main(int argc, char** argv)
 {
-    InitializeMagick(*argv);
+    // This must be called first
+    MakeImageNS::MakeImage::initialize(*argv);
     vector<string> arguments = {};
     if (argc <= 1) { exit_help(); }
     for (int i = 1; i < argc; i++) { arguments.push_back(string(argv[i])); }

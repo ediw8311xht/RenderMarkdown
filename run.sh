@@ -11,7 +11,7 @@ _check_args() {
 }
 _run_this() {
     _pargs=''
-    binary="main"
+    binary="RenderMarkdown"
     if _check_args '-c' "${@}" ; then
         make clean
     elif _check_args '-v' "${@}" ; then

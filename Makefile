@@ -22,10 +22,10 @@ SRCS = $(wildcard $(addsuffix /*.cpp, $(SRC_DIR)))
 OBJS = $(subst .cpp,.o,$(SRCS))
 
 
-all: main
+all: RenderMarkdown
 
-main: $(OBJS)
- $(CXX) $(LDFLAGS) -o main $(OBJS) $(MAGICK_LDLIBS)
+RenderMarkdown: $(OBJS)
+ $(CXX) $(LDFLAGS) -o RenderMarkdown $(OBJS) $(MAGICK_LDLIBS)
 
 %.o: %.cpp
  $(CXX) $(COMPILE_FLAGS) -c $< -o $@
@@ -40,7 +40,7 @@ clean:
  $(RM) $(OBJS)
 
 distclean: clean
- $(RM) main *~ .depend
+ $(RM) RenderMarkdown *~ .depend
 
 -include .depend
 

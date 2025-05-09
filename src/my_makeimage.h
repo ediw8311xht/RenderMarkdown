@@ -15,9 +15,12 @@ using Magick::ColorRGB;
 // using Magick::StyleType;
 using Magick::Image;
 using Magick::Geometry;
+
+// Store text settings
 struct TextData {
     double   font_size   = 12;
-    _s       font        = "Noto-Sans";
+    // Font is dependent on what is available on system.
+    _s       font        = "Noto-Sans"; 
     ColorRGB fg          = ColorRGB(0, 0, 0);
     Color    bg          = Color("transparent");
     bool     wrap        = false;
@@ -32,6 +35,7 @@ struct TextData {
 //|--------------------------------------------------------------------------------------|
 class MakeImage {
     private:
+        // ------------------- VARS --------------------- //
         Image    canvas;
         Geometry canvas_size;
         // `subimg_geo`:
@@ -42,18 +46,21 @@ class MakeImage {
         Color    canvas_bg;
         ssize_t   offset_y;
         ssize_t    padding;
-        static const int line_spacing = 1;
+        const int line_spacing = 1;
 
-        Image image_from_data(_s text, TextData t);
-        Image image_from_data_unwrapped(_s text, TextData t);
+        Image image_from_data(_s text, const TextData& t);
+        Image image_from_data_unwrapped(_s text, const TextData& t);
 
         void write_image(Image& img);
     public:
-        MakeImage(size_t width=500, size_t height=500, Color canvas_bg="white",  ssize_t padding=5);
         static void initialize(char* arg);
-        double get_height(Image& img, const _s& text);
-        void write_text(_s text, TextData t);
-        void reset_image(size_t offset_y=0);
+        static double get_height(Image& img, const _s& text);
+        MakeImage(size_t width=800, size_t height=1000, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
+        // Not using const for Image, because it causes issues.
+        // Maybe reason why have to create new image since I am passing by reference
+        // And FontMetrics is modifying the Image in some way
+        void write_text(_s text, const TextData& t);
+        void reset_image();
         void save_image(const _s& filename);
 };
 

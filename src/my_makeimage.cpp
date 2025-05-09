@@ -6,19 +6,32 @@ using namespace MakeImageNS;
 namespace Mag = Magick;
 using Magick::TypeMetric;
 
+// Get height using Magick::TypeMetric
+// Image Geometry doesn't matter, but settings for image like fontPointsize must be set
+// This Magick::TypeMetric also shows other information such as the width the text would
+// be when rendered.
+// DOESN'T take into account of height with text wrapping (such as with "caption:" or "pango:).
 double MakeImage::get_height(Image& img, const _s& text) {
     TypeMetric g;
     img.fontTypeMetricsMultiline(text, &g);
     return g.textHeight();
 }
 
-Image MakeImage::image_from_data_unwrapped(_s text, TextData t) {
+// Make Image with the background fit to the text.
+// For: non-wrapped text ("label:")
+// Method: Magick::TypeMetric
+// Note: Not using Density - Text to Large
+//       Nor PixelsPerInchResolution - Error when creating image/Calculating Height
+Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
     Image check_image({1, 1}, t.bg);
     check_image.font(t.font);
     check_image.fontPointsize(t.font_size);
     check_image.fillColor(t.fg);
     check_image.textAntiAlias(true);
+    // Height of text.
     size_t text_height = std::ceil(get_height(check_image, text));
+    // Resizing and drawing text on resized image causes issues.
+    // So making new image.
     Image new_img({subimg_geo.width(), text_height}, t.bg);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
@@ -28,7 +41,13 @@ Image MakeImage::image_from_data_unwrapped(_s text, TextData t) {
     new_img.read("label:" + text);
     return new_img;
 }
-Image MakeImage::image_from_data(_s text, TextData t ) {
+// Make Image with the background fit to the text.
+// For: wrapped text ("caption:" or "pango:")
+// Method: Sets height to 0 so the image will automatically adjust
+//         to fit text.
+// Note: Ensure text wrapping the width is set to the size of the canvas
+//        (minus padding on both side)
+Image MakeImage::image_from_data(_s text, const TextData& t ) {
     Image new_img(subimg_geo, t.bg);
     new_img.resolutionUnits(Mag::PixelsPerInchResolution);
     new_img.font(t.font);
@@ -42,14 +61,18 @@ Image MakeImage::image_from_data(_s text, TextData t ) {
 void MakeImage::write_image(Image& img) {
     canvas.composite(img, 2, offset_y, Mag::OverCompositeOp);
     // Update offset to adjust for written image
+    // img.rows() is  the height of the image.
     offset_y += img.rows() + line_spacing;
 }
 
-MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding )
-    : canvas_size(width, height)     , subimg_geo(width-(padding*2), 0)      ,
-      canvas_bg(canvas_bg)  , offset_y(padding)
+MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding, int line_spacing )
+    : canvas_size(width, height)     , subimg_geo(width-(padding*2), 0) ,
+      canvas_bg(canvas_bg)           , offset_y(padding) ,
+      line_spacing(line_spacing)
 {
+    // Initialize canvas
     canvas = Image({width, height}, canvas_bg);
+    // Using density for base image ONLY
     canvas.density({300, 300});
     canvas.resolutionUnits(Mag::PixelsPerInchResolution);
 }
@@ -60,14 +83,14 @@ void MakeImage::initialize(char* arg) {
     // See: http://www.graphicsmagick.org/Magick++/
     Mag::InitializeMagick(arg);
 }
-void MakeImage::write_text(_s text, TextData t) {
+void MakeImage::write_text(_s text, const TextData& t) {
     Image img = t.wrap ? image_from_data(text, t) : image_from_data_unwrapped(text, t);
     write_image(img);
 }
 
-void MakeImage::reset_image(size_t offset_y) {
+void MakeImage::reset_image() {
     canvas.erase();
-    this->offset_y = offset_y;
+    this->offset_y = padding;
 }
 
 void MakeImage::save_image(const _s& filename) {
