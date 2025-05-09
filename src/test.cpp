@@ -13,6 +13,7 @@ const map<string, test_function> TestRenderMarkdown::test_map = {
     {"code",        &TestRenderMarkdown::test_code},
     {"header",      &TestRenderMarkdown::test_header},
     {"together",    &TestRenderMarkdown::test_together},
+    {"display",     &TestRenderMarkdown::test_display},
 };
 
 void TestRenderMarkdown::test_bold_italic() {
@@ -31,6 +32,11 @@ void TestRenderMarkdown::test_header() {
 void TestRenderMarkdown::test_together() {
     ParseMarkdown a("TEST_FILES/test_together.md");
     a.make_image("TEST_FILES/test_together.jpeg");
+}
+
+void TestRenderMarkdown::test_display() {
+    ParseMarkdown a("TEST_FILES/test_together.md");
+    a.make_image("-");
 }
 
 void TestRenderMarkdown::run(string test) {

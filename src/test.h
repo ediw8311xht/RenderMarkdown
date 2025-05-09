@@ -22,6 +22,7 @@ namespace TestRenderMarkdownNS {
             void test_code();
             void test_header();
             void test_together();
+            void test_display();
         public:
             void run(string test);
             void run_all();
