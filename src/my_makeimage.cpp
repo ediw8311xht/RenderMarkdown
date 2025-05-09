@@ -30,6 +30,7 @@ Image MakeImage::image_from_data_unwrapped(_s text, TextData t) {
 }
 Image MakeImage::image_from_data(_s text, TextData t ) {
     Image new_img(subimg_geo, t.bg);
+    new_img.resolutionUnits(Mag::PixelsPerInchResolution);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
     new_img.fillColor(t.fg);
@@ -39,16 +40,18 @@ Image MakeImage::image_from_data(_s text, TextData t ) {
 }
 
 void MakeImage::write_image(Image& img) {
-    canvas.composite(img, 0, offset_y, Mag::OverCompositeOp);
+    canvas.composite(img, 2, offset_y, Mag::OverCompositeOp);
     // Update offset to adjust for written image
     offset_y += img.rows() + line_spacing;
 }
 
-MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, size_t padding )
+MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding )
     : canvas_size(width, height)     , subimg_geo(width-(padding*2), 0)      ,
       canvas_bg(canvas_bg)  , offset_y(padding)
 {
-  canvas = Image({width, height}, canvas_bg);
+    canvas = Image({width, height}, canvas_bg);
+    canvas.density({300, 300});
+    canvas.resolutionUnits(Mag::PixelsPerInchResolution);
 }
 
 void MakeImage::initialize(char* arg) {

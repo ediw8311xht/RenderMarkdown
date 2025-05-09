@@ -41,15 +41,15 @@ class MakeImage {
         Geometry subimg_geo;
         Color    canvas_bg;
         ssize_t   offset_y;
-        size_t    padding;
-        static const int line_spacing = 3;
+        ssize_t    padding;
+        static const int line_spacing = 1;
 
         Image image_from_data(_s text, TextData t);
         Image image_from_data_unwrapped(_s text, TextData t);
 
         void write_image(Image& img);
     public:
-        MakeImage(size_t width=500, size_t height=500, Color canvas_bg="white",  size_t padding=20);
+        MakeImage(size_t width=500, size_t height=500, Color canvas_bg="white",  ssize_t padding=5);
         static void initialize(char* arg);
         double get_height(Image& img, const _s& text);
         void write_text(_s text, TextData t);
