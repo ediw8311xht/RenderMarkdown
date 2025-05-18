@@ -7,7 +7,7 @@
 CXX = g++
 RM = rm -f
 
-CXXFLAGS = -Wall -std=c++20 -fopenmp
+CXXFLAGS = -Wall -std=c++20
 
 MAGICK_CXXFLAGS = $(shell Magick++-config --cppflags --cxxflags)
 
@@ -15,7 +15,7 @@ COMPILE_FLAGS = $(CXXFLAGS) $(MAGICK_CXXFLAGS)
 
 MAGICK_LDLIBS = $(shell Magick++-config --libs)
 
-LDFLAGS =
+LDFLAGS = -lboost_program_options
 
 SRC_DIR = src
 SRCS = $(wildcard $(addsuffix /*.cpp, $(SRC_DIR)))

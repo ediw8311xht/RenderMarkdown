@@ -30,5 +30,7 @@ Long lines like this get automatically wrapped abcd abcd abcd abcd abcd abcd abc
 
 Testing special characters (no breaking): &&&!!!@@@##$$\%^&^*)<><><><><><><>>>><<
 
+\%
+
 Separate line
 Another Separate line

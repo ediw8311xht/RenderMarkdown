@@ -1,6 +1,6 @@
 #pragma once
 
-#include "my_makeimage.h"
+#include "my_make_image.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -14,8 +14,6 @@
 #include <tuple>
 #include <Magick++.h>
 #include <boost/regex.hpp>
-
-#define P(A) std::cout << A << std::endl;
 
 namespace ParseMarkdownNS {
 

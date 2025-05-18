@@ -1,10 +1,8 @@
 #pragma once
-#include <iostream>
 #include <string>
 #include <vector>
 #include <tuple>
 #include <Magick++.h>
-#include <string>
 
 namespace MakeImageNS {
 

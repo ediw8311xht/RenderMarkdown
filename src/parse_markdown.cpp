@@ -2,7 +2,7 @@
 
 using namespace ParseMarkdownNS;
 using Magick::ColorRGB;
-using Magick::Color;;
+using Magick::Color;
 
 ParseMarkdown::ParseMarkdown(vec<_s> files) : files(files) { read_in_files(); }
 ParseMarkdown::ParseMarkdown(_s file) {

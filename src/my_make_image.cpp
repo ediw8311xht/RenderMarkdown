@@ -1,5 +1,5 @@
 #include <iostream>
-#include "my_makeimage.h"
+#include "my_make_image.h"
 #include <cmath> // for std::ceil
 // Helpful macro
 #define P(A) std::cout << A

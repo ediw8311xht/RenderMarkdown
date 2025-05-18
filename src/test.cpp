@@ -1,7 +1,7 @@
 #include <iostream>
 #include "test.h"
 #include <filesystem>
-#include "my_makeimage.h"
+#include "my_make_image.h"
 #include "parse_markdown.h"
 
 using ParseMarkdownNS::ParseMarkdown;
