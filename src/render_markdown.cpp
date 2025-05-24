@@ -6,8 +6,10 @@
 #include <filesystem>
 #include <execution>
 #include <boost/program_options.hpp>
-#define OPT_SPACE "  "
-#define OPT_SPACE2 OPT_SPACE OPT_SPACE
+#define ERROR_CODES \
+    "   1  Argument Error\n" \
+    "   2      File Error\n" \
+    "   3     Write Error\n"
 
 using ParseMarkdownNS::ParseMarkdown;
 using namespace boost::program_options;
@@ -27,7 +29,6 @@ void RenderMarkdown::run_program() {
             parse_m.save_image(ofile);
         }
     );
-    //parse_m.make_image
 }
 
 void exit_error(bool b, _s s, int exit_code) {
@@ -53,12 +54,9 @@ void RenderMarkdown::check_files() {
     );
 }
 void RenderMarkdown::help_exit(int exit_code) {
-    cout << "RenderMarkdown [options] [input-file] [output-file]" << endl;
+    cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
     cout << this->flags;
-    cout << "Errors:" << endl;
-    cout << OPT_SPACE "1" OPT_SPACE "Argument Error" << endl;
-    cout << OPT_SPACE "2" OPT_SPACE "File Error" << endl;
-    cout << OPT_SPACE "3" OPT_SPACE "Write Error" << endl;
+    cout << std::format( "Errors:\n{}" , ERROR_CODES );
     exit(exit_code);
 }
 void RenderMarkdown::test_exit() {
