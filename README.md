@@ -1,6 +1,11 @@
 ## Render Markdown
+Renders markdown files to image or terminal.
 
-Renders markdown files to image using ImageMagick (Magick++ API) or to terminal using Kitty Graphics Protocol.
+#### Rendering:
+ImageMagick (Magick++ API)
+
+#### Terminal display:
+Kitty Graphics Protocol.
 
 ## Usage:
 ```
