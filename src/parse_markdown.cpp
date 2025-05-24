@@ -60,6 +60,7 @@ std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
     if ( file.is_open() ) {
         std::stringstream s;
         s << file.rdbuf();
+        file.close();
         return s.str();
     }
     return std::nullopt;
