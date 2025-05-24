@@ -1,15 +1,7 @@
-#include <iostream>
+#include "macros_defines.h"
 #include "my_make_image.h"
+#include <iostream>
 #include <cmath> // for std::ceil
-// Helpful macro
-#define P(A) std::cout << A
-// Begins each chunk
-#define CHUNK_SEP "\e_G"
-// Ends each chunk
-#define CHUNK_END "\e\\"
-// a=T automatically sets position and size of image to display f=100 is for PNG
-#define DISPLAY_SETTING "a=T,f=100,"
-#define BEGIN_DATA_SIZE 13
 
 using namespace MakeImageNS;
 

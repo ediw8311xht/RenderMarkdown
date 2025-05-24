@@ -1,6 +1,7 @@
 #include "parse_markdown.h"
-#include <format>
+#include "macros_defines.h"
 #include <iostream>
+#include <format>
 #include <fstream>
 #include <Magick++.h>
 #include <regex> // For stringstream
@@ -10,10 +11,9 @@ using TT = ParseMarkdownNS::TokenType;
 //----------------------------------------------------- Standard Library -------//
 using std::pair;
 using std::set;
-using _s = std::string;
 //----------------------------------------------------- Boost ------------------//
 using boost::regex;
-using bmatch = boost::match_results<std::string::const_iterator>;
+using bmatch = boost::match_results<_s::const_iterator>;
 //----------------------------------------------------- Magick++ ---------------//
 using Magick::ColorRGB;
 using Magick::Color;
@@ -94,15 +94,15 @@ void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
         mimg->write_text(text, text_map.at(type));
     }
 }
-void ParseMarkdown::save_image(std::string output_file) {
+void ParseMarkdown::save_image(_s output_file) {
     if (output_file == "-") { mimg->display_image_kitty();   }
     else                    { mimg->save_image(output_file); }
 }
 
 void ParseMarkdown::generate_tokens() {
     tokens = {};
-    std::string::const_iterator s = total_str.begin();
-    std::string::const_iterator e = total_str.end();
+    _s::const_iterator s = total_str.begin();
+    _s::const_iterator e = total_str.end();
     bmatch res;
     while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;

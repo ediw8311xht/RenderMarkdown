@@ -1,13 +1,13 @@
 #pragma once
+#include "macros_defines.h"
 #include <boost/program_options.hpp>
-#include <string>
 #include <set>
 
 namespace RenderMarkdownNS {
 
 typedef struct ProgArgs {
-    std::set<std::string> input_files  = {};
-    std::set<std::string> output_files = {}; // For terminal output use "-"
+    std::set<_s> input_files  = {};
+    std::set<_s> output_files = {}; // For terminal output use "-"
     size_t       img_width    =   800;
     size_t       img_height   =  1000;
     bool         overwrite    = false;

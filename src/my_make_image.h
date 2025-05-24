@@ -1,4 +1,5 @@
 #pragma once
+#include "macros_defines.h"
 #include <string>
 #include <vector>
 #include <tuple>
@@ -8,7 +9,6 @@ namespace MakeImageNS {
 
 
 typedef struct TextData TextData;
-using _s    = std::string;
 using Magick::Color;
 using Magick::ColorRGB;
 // using Magick::StyleType;
@@ -47,7 +47,7 @@ class MakeImage {
         Color    canvas_bg;
         ssize_t   offset_y;
         ssize_t    padding;
-        const int line_spacing = 1;
+        const int line_spacing = DEFAULT_LINE_SPACING;
 
         Image image_from_data(_s text, const TextData& t);
         Image image_from_data_unwrapped(_s text, const TextData& t);
@@ -57,7 +57,7 @@ class MakeImage {
         static void send_data(const _s& s, _stype i = 0, _stype size=0, bool start=true);
         static void initialize(char* arg);
         static double get_height(Image& img, const _s& text);
-        MakeImage(size_t width=800, size_t height=1000, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
+        MakeImage(size_t width, size_t height, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
         // Not using const for Image, because it causes issues.
         // Maybe reason why have to create new image since I am passing by reference
         // And FontMetrics is modifying the Image in some way

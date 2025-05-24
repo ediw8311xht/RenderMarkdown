@@ -1,25 +1,51 @@
 #include "render_markdown.h"
 #include "parse_markdown.h"
+#include "test.h"
+#include "macros_defines.h"
 #include <iostream>
 #include <format>
 #include <set>
 #include <filesystem>
 #include <execution>
 #include <boost/program_options.hpp>
-#define ERROR_CODES \
-    "   1  Argument Error\n" \
-    "   2      File Error\n" \
-    "   3     Write Error\n"
 
 using ParseMarkdownNS::ParseMarkdown;
 using namespace boost::program_options;
 using std::filesystem::exists;
-using std::cout;
-using std::endl;
-using _s = std::string;
-
 
 namespace RenderMarkdownNS {
+
+//-------------------------
+void RenderMarkdown::initialize_options() {
+    bool dflag = false;
+    this->flags.add_options()
+    //--- Special -----------//
+        ( "help,h" , bool_switch(&dflag) , "print help" )
+        ( "test,t" , bool_switch(&dflag) , "run tests"  )
+    //--- Flags/Options -----//
+        ( "width,W" , value<size_t>( &this->prog_args.img_width )->default_value(DEFAULT_WIDTH) ,
+          "image width"  )
+        ( "height,H" , value<size_t>( &this->prog_args.img_height )->default_value(DEFAULT_HEIGHT) ,
+          "image height" )
+        ( "display,d" , bool_switch(&dflag)->notifier(
+                [this](bool n) { if (n) { prog_args.output_files.insert("-"); } }
+            ) , "display to terminal" )
+        ( "overwrite,O"   , bool_switch(&dflag)->notifier(
+                [this](bool n) { this->prog_args.overwrite = n; }
+            ) , "overwrite output file" )
+    //--- Args --------------//
+        ( "input-file,i"  , value<_s>()->default_value("")->notifier(
+                [this](_s f) { this->prog_args.input_files = {f}; }
+            ) , "input file" )
+        ( "output-file,o" , value<_s>()->default_value("")->notifier(
+                [this](_s f) {
+                    if (f != "") { this->prog_args.output_files.insert(f); }
+                }
+            ) , "output file" )
+    ;
+    this->posargs.add("input-file"  , 1);
+    this->posargs.add("output-file" , 1);
+}
 
 void RenderMarkdown::run_program() {
     ParseMarkdown parse_m(prog_args.input_files);
@@ -32,7 +58,7 @@ void RenderMarkdown::run_program() {
 }
 
 void exit_error(bool b, _s s, int exit_code) {
-    if (b) { std::cerr << "Error: " << s << endl; exit(exit_code); }
+    if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
 }
 template <typename... Args>
 void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
@@ -54,12 +80,14 @@ void RenderMarkdown::check_files() {
     );
 }
 void RenderMarkdown::help_exit(int exit_code) {
-    cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
-    cout << this->flags;
-    cout << std::format( "Errors:\n{}" , ERROR_CODES );
+    std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
+    std::cout << this->flags;
+    std::cout << std::format( "Errors:\n{}" , ERROR_CODES );
     exit(exit_code);
 }
 void RenderMarkdown::test_exit() {
+    TestRenderMarkdownNS::TestRenderMarkdown test;
+    test.run_all();
     exit(0);
 }
 void RenderMarkdown::handle_args() {
@@ -73,32 +101,6 @@ void RenderMarkdown::handle_args() {
     //prog_args.input_files = {opt_map["input-file"].as<_s>()};
     check_files();
     return;
-}
-void RenderMarkdown::initialize_options() {
-    bool dflag = false;
-    this->flags.add_options()
-    // -- Special -- //
-        ( "help,h"        , bool_switch(&dflag) , "print help" )
-        ( "test,t"        , bool_switch(&dflag) , "run tests"  )
-    // -- Regular -- //
-        ( "display,d"     , bool_switch(&dflag)->notifier(
-                [this](bool n) { if (n) { prog_args.output_files.insert("-"); } }
-            ) , "display to terminal" )
-        ( "overwrite,O"   , bool_switch(&dflag)->notifier(
-                [this](bool n) { this->prog_args.overwrite = n; }
-            ) , "overwrite output file" )
-    // -- Args -- //
-        ( "input-file,i"  , value<_s>()->default_value("")->notifier(
-                [this](_s f) { this->prog_args.input_files = {f}; }
-            ) , "input file" )
-        ( "output-file,o" , value<_s>()->default_value("")->notifier(
-                [this](_s f) {
-                    if (f != "") { this->prog_args.output_files.insert(f); }
-                }
-            ) , "output file" )
-    ;
-    this->posargs.add("input-file"  , 1);
-    this->posargs.add("output-file" , 1);
 }
 void RenderMarkdown::get_options(int argc, char** argv) {
     try {

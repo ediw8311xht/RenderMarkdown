@@ -1,6 +1,7 @@
 #pragma once
 
 #include "my_make_image.h"
+#include "macros_defines.h"
 #include <vector>
 #include <set>
 #include <string>
@@ -25,10 +26,10 @@ enum class TokenType : int {
 
 struct Token {
     TokenType   type = TokenType::NONE;
-    std::string text = "";
+    _s text = "";
 
-    Token(std::string text) : text(text) {}
-    Token(TokenType type=TokenType::TEXT, std::string text="", MakeImageNS::TextData text_data = MakeImageNS::TextData())
+    Token(_s text) : text(text) {}
+    Token(TokenType type=TokenType::TEXT, _s text="", MakeImageNS::TextData text_data = MakeImageNS::TextData())
         : type(type), text(text) {}
 };
 
@@ -42,40 +43,40 @@ class ParseMarkdown {
         // static const regex full_regex;
         static const boost::regex replace_chars;
         static const boost::regex block_regex;
-        static const std::array< std::pair<boost::regex, std::string>, 4> inline_regex;
+        static const std::array< std::pair<boost::regex, _s>, 4> inline_regex;
 
 //----------------------------- Vars
         // Names of markdown files
-        std::set<std::string> files = {};
+        std::set<_s> files = {};
         // Lines of files
-        std::set<std::optional<std::string>> str_files;
+        std::set<std::optional<_s>> str_files;
         // Concenated contents of all files
-        std::string total_str; 
+        _s total_str; 
         std::vector<Token> tokens = {};
 
 //----------------------------- Functions
-        std::optional<std::string> file_as_string(std::string file_string);
+        std::optional<_s> file_as_string(_s file_string);
         // Internal function for read_in_files()
         // optional<string> so value returned can indicate when there is an
         // issue with opening the file.
-        void _read_in_files( std::set<std::string>& f,
-                             std::set<std::string>::iterator i,
-                             std::set<std::string>::iterator e );
-        void handle_code(   const boost::match_results<std::string::const_iterator>& res );
-        void handle_header( const boost::match_results<std::string::const_iterator>& res );
+        void _read_in_files( std::set<_s>& f,
+                             std::set<_s>::iterator i,
+                             std::set<_s>::iterator e );
+        void handle_code(   const boost::match_results<_s::const_iterator>& res );
+        void handle_header( const boost::match_results<_s::const_iterator>& res );
         void generate_tokens();
         // Text must be cleaned since both pango and Magick++ use certain characters for formatting 
-        std::string clean_text(std::string s);
+        _s clean_text(_s s);
         // Inline for formatting that is done within the text using pango
-        void handle_inline(std::string s);
+        void handle_inline(_s s);
     public:
         // Explicit since reading in files happens when intialized.
-        explicit ParseMarkdown(std::set<std::string> files={});
-        explicit ParseMarkdown(std::string file);
+        explicit ParseMarkdown(std::set<_s> files={});
+        explicit ParseMarkdown(_s file);
 
         void read_in_files();
-        void make_image(size_t image_width=1000, size_t image_height=800);
-        void save_image(std::string output_file);
+        void make_image(size_t image_width, size_t image_height);
+        void save_image(_s output_file);
 };
 
  
