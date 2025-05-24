@@ -4,19 +4,20 @@ Renders markdown files to image using ImageMagick (Magick++ API) or to terminal 
 
 ## Usage:
 ```
-RenderMarkdown: [options] [input-file] [output-file] 
-     Options  
-         --help    : print help  
-         --test    : run tests   
-         --display : display image on terminal
-     Arguments  
-         [input-file]  : Markdown formatted input file. 
-         [output-file] : (Image file to output) or ('-') to output to terminal (must have kitty). 
-     Exit Status  
-         0    Good  
-         1    Argument Error 
-         2    File Error 
-         3    Write Error
+RenderMarkdown [options] [input-file] [output-file]
+Options:
+  -h [ --help ]               print help
+  -t [ --test ]               run tests
+  -W [ --width ] arg (=800)   image width
+  -H [ --height ] arg (=1000) image height
+  -d [ --display ]            display to terminal
+  -O [ --overwrite ]          overwrite output file
+  -i [ --input-file ] arg     input file
+  -o [ --output-file ] arg    output file
+Errors:
+   1  Argument Error
+   2      File Error
+   3     Write Error
 ```
 
 
@@ -26,7 +27,6 @@ RenderMarkdown: [options] [input-file] [output-file]
 
 ## Installing/Compiling
 Ensure you have installed the required libraries.
-
 
 ### Linux
 Run `make` then execute binary `RenderMarkdown`
