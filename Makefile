@@ -15,7 +15,7 @@ COMPILE_FLAGS = $(CXXFLAGS) $(MAGICK_CXXFLAGS)
 
 MAGICK_LDLIBS = $(shell Magick++-config --libs)
 
-LDFLAGS = -lboost_program_options
+LDFLAGS = -lboost_program_options -ltbb
 
 SRC_DIR = src
 SRCS = $(wildcard $(addsuffix /*.cpp, $(SRC_DIR)))

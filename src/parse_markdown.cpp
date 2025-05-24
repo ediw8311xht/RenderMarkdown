@@ -1,28 +1,39 @@
 #include "parse_markdown.h"
+#include <format>
+#include <iostream>
+#include <fstream>
+#include <Magick++.h>
+#include <regex> // For stringstream
 
-using namespace ParseMarkdownNS;
+//----------------------------------------------------- Mine -------------------//
+using TT = ParseMarkdownNS::TokenType;
+//----------------------------------------------------- Standard Library -------//
+using std::pair;
+using std::set;
+using _s = std::string;
+//----------------------------------------------------- Boost ------------------//
+using boost::regex;
+using bmatch = boost::match_results<std::string::const_iterator>;
+//----------------------------------------------------- Magick++ ---------------//
 using Magick::ColorRGB;
 using Magick::Color;
 
-ParseMarkdown::ParseMarkdown(vec<_s> files) : files(files) { read_in_files(); }
-ParseMarkdown::ParseMarkdown(_s file) {
-    this->files = vec<_s>({file});
-    read_in_files();
-}
+namespace ParseMarkdownNS {
 
-
+ParseMarkdown::ParseMarkdown(set<_s> files) : files( files )            { read_in_files(); }
+ParseMarkdown::ParseMarkdown(_s file)       : files( set<_s>({file}) )  { read_in_files(); }
 //------------------------------------------------------------------------------//
-//--------------------------------VARS------------------------------------------//
+//------------------------------- VARS -----------------------------------------//
 //------------------------------------------------------------------------------//
 // TextData - font size, family, fg, bg, text wrap
-const map< const TT, const TextData > ParseMarkdown::text_map = {
-    { TT::CODE, TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),   false ) },
-    { TT::H1,   TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H2,   TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H3,   TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H4,   TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H5,   TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::TEXT, TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, 
+const std::map< const TT, const MakeImageNS::TextData > ParseMarkdown::text_map = {
+    { TT::CODE, MakeImageNS::TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),   false ) },
+    { TT::H1,   MakeImageNS::TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H2,   MakeImageNS::TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H3,   MakeImageNS::TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H4,   MakeImageNS::TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H5,   MakeImageNS::TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::TEXT, MakeImageNS::TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, 
 };
 
 const regex ParseMarkdown::block_regex = regex(
@@ -30,7 +41,7 @@ const regex ParseMarkdown::block_regex = regex(
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
 );
 
-const array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
+const std::array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" },
     pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        },
     pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        },
@@ -42,7 +53,7 @@ const array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
 };
 
 //------------------------------------------------------------------------------//
-//--------------------------------UTILITY---------------------------------------//
+//------------------------------- UTILITY --------------------------------------//
 //------------------------------------------------------------------------------//
 std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
     std::ifstream file(file_string);
@@ -54,12 +65,12 @@ std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
     return std::nullopt;
 }
 
-void ParseMarkdown::_read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::iterator e) {
+void ParseMarkdown::_read_in_files(set<_s>& f, set<_s>::iterator i, set<_s>::iterator e) {
     if (i == e) { return; }
     std::optional<_s> o = file_as_string(*i);
-    this->str_files.push_back(o);
+    // this->str_files.push_back(o);
     if (!o.has_value()) {
-        std::cerr << format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
+        std::cerr << std::format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
         exit(2);
     }
     else { this->total_str += o.value(); }
@@ -67,31 +78,33 @@ void ParseMarkdown::_read_in_files(vec<_s>& f, vec<_s>::iterator i, vec<_s>::ite
 }
 
 void ParseMarkdown::read_in_files() {
-    this->str_files = {};
+    // this->str_files = {};
     this->total_str = "";
     _read_in_files(this->files, this->files.begin(), this->files.end());
 }
 
 //------------------------------------------------------------------------------//
-//--------------------------------CORE-FUNCTIONS--------------------------------//
+//------------------------------- CORE FUNCTIONS -------------------------------//
 //------------------------------------------------------------------------------//
 
-void ParseMarkdown::make_image(_s output_file, size_t image_width, size_t image_height) {
+void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
     generate_tokens();
-    MakeImage g(image_width, image_height);
+    mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
     for (auto& [type, text] : tokens) {
-        g.write_text(text, text_map.at(type));
+        mimg->write_text(text, text_map.at(type));
     }
-    if (output_file == "-") { g.display_image_kitty();   }
-    else                    { g.save_image(output_file); }
+}
+void ParseMarkdown::save_image(std::string output_file) {
+    if (output_file == "-") { mimg->display_image_kitty();   }
+    else                    { mimg->save_image(output_file); }
 }
 
 void ParseMarkdown::generate_tokens() {
     tokens = {};
-    _citer s = total_str.begin();
-    _citer e = total_str.end();
+    std::string::const_iterator s = total_str.begin();
+    std::string::const_iterator e = total_str.end();
     bmatch res;
-    while (regex_search(s, e, res, block_regex)) {
+    while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;
         // tokens.push_back(handle_inline(s, res[0].first));
         handle_inline( res.prefix() );
@@ -105,7 +118,7 @@ void ParseMarkdown::generate_tokens() {
 }
 
 //------------------------------------------------------------------------------//
-//--------------------------------PARSERS---------------------------------------//
+//------------------------------- PARSERS --------------------------------------//
 //------------------------------------------------------------------------------//
 
 const regex ParseMarkdown::replace_chars = regex( "[&<>'\"]");
@@ -146,4 +159,4 @@ void ParseMarkdown::handle_header(const bmatch& res) {
     tokens.push_back({htype, clean_text(res["CONTENT"])});
 }
 
-
+}

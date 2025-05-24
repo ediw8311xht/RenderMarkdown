@@ -18,25 +18,30 @@ const map<string, test_function> TestRenderMarkdown::test_map = {
 
 void TestRenderMarkdown::test_bold_italic() {
     ParseMarkdown a("TEST_FILES/test_bold_italic.md");
-    a.make_image("TEST_FILES/test_bold_italic.jpeg");
+    a.make_image();
+    a.save_image("TEST_FILES/test_bold_italic.jpeg");
 }
 void TestRenderMarkdown::test_code() {
     ParseMarkdown a("TEST_FILES/test_code.md");
-    a.make_image("TEST_FILES/test_code.jpeg");
+    a.make_image();
+    a.save_image("TEST_FILES/test_code.jpeg");
 
 }
 void TestRenderMarkdown::test_header() {
     ParseMarkdown a("TEST_FILES/test_header.md");
-    a.make_image("TEST_FILES/test_header.jpeg");
+    a.make_image();
+    a.save_image("TEST_FILES/test_header.jpeg");
 }
 void TestRenderMarkdown::test_together() {
     ParseMarkdown a("TEST_FILES/test_together.md");
-    a.make_image("TEST_FILES/test_together.jpeg");
+    a.make_image();
+    a.save_image("TEST_FILES/test_together.jpeg");
 }
 
 void TestRenderMarkdown::test_display() {
     ParseMarkdown a("TEST_FILES/test_together.md");
-    a.make_image("-");
+    a.make_image();
+    a.save_image("-");
 }
 
 void TestRenderMarkdown::run(string test) {

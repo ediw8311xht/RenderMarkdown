@@ -1,4 +1,7 @@
 
+*.json
+*.cache
+*.cache/
 *.ccls
 *.ccls-cache/
 *.o
