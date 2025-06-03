@@ -2,7 +2,6 @@
 
 #include "my_make_image.h"
 #include "macros_defines.h"
-#include <vector>
 #include <set>
 #include <string>
 #include <optional>
@@ -52,7 +51,6 @@ class ParseMarkdown {
         std::set<std::optional<_s>> str_files;
         // Concenated contents of all files
         _s total_str; 
-        std::vector<Token> tokens = {};
 
 //----------------------------- Functions
         std::optional<_s> file_as_string(_s file_string);
@@ -64,7 +62,6 @@ class ParseMarkdown {
                              std::set<_s>::iterator e );
         void handle_code(   const boost::match_results<_s::const_iterator>& res );
         void handle_header( const boost::match_results<_s::const_iterator>& res );
-        void generate_tokens();
         // Text must be cleaned since both pango and Magick++ use certain characters for formatting 
         _s clean_text(_s s);
         // Inline for formatting that is done within the text using pango

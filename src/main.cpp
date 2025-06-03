@@ -3,7 +3,7 @@
 
 using RenderMarkdownNS::RenderMarkdown;
 int main(int argc, char** argv) {
-    MakeImageNS::MakeImage::initialize(*argv);
+    MakeImageNS::MakeImage::setup_magick(*argv);
     RenderMarkdown r;
     r.get_options(argc, argv);
     r.run_program();

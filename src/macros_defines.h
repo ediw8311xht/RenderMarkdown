@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 #define DEFAULT_WIDTH  800
 #define DEFAULT_HEIGHT 1000

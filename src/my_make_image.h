@@ -1,8 +1,8 @@
 #pragma once
 #include "macros_defines.h"
 #include <string>
-#include <vector>
-#include <tuple>
+// #include <vector>
+// #include <tuple>
 #include <Magick++.h>
 
 namespace MakeImageNS {
@@ -55,7 +55,7 @@ class MakeImage {
         void write_image(Image& img);
     public:
         static void send_data(const _s& s, _stype i = 0, _stype size=0, bool start=true);
-        static void initialize(char* arg);
+        static void setup_magick(char* arg);
         static double get_height(Image& img, const _s& text);
         MakeImage(size_t width, size_t height, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
         // Not using const for Image, because it causes issues.

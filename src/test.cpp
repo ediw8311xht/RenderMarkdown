@@ -39,8 +39,8 @@ void TestRenderMarkdown::test_together() {
 }
 
 void TestRenderMarkdown::test_display() {
-    ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_together.md");
-    a.make_image( DEFAULT_WIDTH , DEFAULT_HEIGHT );
+    ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_together.md" );
+    a.make_image( 300 , 300 );
     a.save_image("-");
 }
 

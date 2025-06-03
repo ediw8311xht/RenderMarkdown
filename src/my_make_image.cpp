@@ -1,6 +1,5 @@
 #include "macros_defines.h"
 #include "my_make_image.h"
-#include <iostream>
 #include <cmath> // for std::ceil
 
 using namespace MakeImageNS;
@@ -80,11 +79,14 @@ MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t paddi
     canvas.resolutionUnits(Mag::PixelsPerInchResolution);
 }
 
-void MakeImage::initialize(char* arg) {
+void MakeImage::setup_magick(char* arg) {
     // Must be called before making image objects
     // Pass first argument (path where program is being run)
     // See: http://www.graphicsmagick.org/Magick++/
     Mag::InitializeMagick(arg);
+    // Weird how this isn't mentioned in documentation???
+    // Deallocates dynamically assigned memory used by magick
+    std::atexit(Mag::TerminateMagick);
 }
 void MakeImage::write_text(_s text, const TextData& t) {
     Image img = t.wrap ? image_from_data(text, t) : image_from_data_unwrapped(text, t);
@@ -108,7 +110,7 @@ void MakeImage::send_data(const _s& s, _stype i, _stype size, bool start) {
     P( (ni <= size ? "m=1;" : ";") );
     P(s.substr(i, 4096));
     P(CHUNK_END);
-    return ni < size ? send_data(s, ni, size, false) : void();
+    return ni < size ? send_data(s, ni, size, false) : ( P("\n") , void() );
 }
 // Display to terminal
 void MakeImage::display_image_kitty() {

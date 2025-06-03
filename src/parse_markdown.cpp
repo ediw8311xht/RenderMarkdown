@@ -4,7 +4,7 @@
 #include <format>
 #include <fstream>
 #include <Magick++.h>
-#include <regex> // For stringstream
+#include <sstream> // For stringstream
 
 //----------------------------------------------------- Mine -------------------//
 using TT = ParseMarkdownNS::TokenType;
@@ -88,23 +88,23 @@ void ParseMarkdown::read_in_files() {
 //------------------------------- CORE FUNCTIONS -------------------------------//
 //------------------------------------------------------------------------------//
 
-void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
-    generate_tokens();
-    mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
-    for (auto& [type, text] : tokens) {
-        mimg->write_text(text, text_map.at(type));
-    }
-}
+// void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
+//     generate_tokens();
+//     mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
+//     for (auto& [type, text] : tokens) {
+//         mimg->write_text(text, text_map.at(type));
+//     }
+// }
 void ParseMarkdown::save_image(_s output_file) {
     if (output_file == "-") { mimg->display_image_kitty();   }
     else                    { mimg->save_image(output_file); }
 }
 
-void ParseMarkdown::generate_tokens() {
-    tokens = {};
+void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
     _s::const_iterator s = total_str.begin();
     _s::const_iterator e = total_str.end();
     bmatch res;
+    mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
     while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;
         // tokens.push_back(handle_inline(s, res[0].first));
@@ -122,8 +122,9 @@ void ParseMarkdown::generate_tokens() {
 //------------------------------- PARSERS --------------------------------------//
 //------------------------------------------------------------------------------//
 
-const regex ParseMarkdown::replace_chars = regex( "[&<>'\"]");
-// THIS IS SO DUMB. PANGO IS DUMB.
+const regex ParseMarkdown::replace_chars = regex( "[&<>'\"%]" );
+// Special characters need to be replaced, but `&amp;` gets turned into `&`
+// So this is the work around
 _s ParseMarkdown::clean_text(_s s) {
     return regex_replace(s, replace_chars, [](const bmatch& m) -> _s {
         switch (*m[0].first) {
@@ -131,6 +132,7 @@ _s ParseMarkdown::clean_text(_s s) {
             case '<'  : return "&amp;lt;";
             case '>'  : return "&amp;gt;";
             case '\'' : return "&amp;apos;";
+            case '%'  : return "&amp;#37;";
             case '"'  : return "&amp;quot;";
         }
         return m.str();
@@ -141,11 +143,11 @@ void ParseMarkdown::handle_inline(_s s) {
     for (auto& [reg, repl] : inline_regex) {
         out = boost::regex_replace(out, reg, repl);
     }
-    tokens.push_back({TT::TEXT, out});
+    mimg->write_text(out, text_map.at(TT::TEXT));
 }
 
 void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res) {
-    tokens.push_back({TT::CODE, res["CODE"]});
+    mimg->write_text(res["CODE"], text_map.at(TT::CODE));
 }
 
 void ParseMarkdown::handle_header(const bmatch& res) {
@@ -157,7 +159,7 @@ void ParseMarkdown::handle_header(const bmatch& res) {
         case 4: htype = TT::H4; break;
         case 5: htype = TT::H5; break;
     }
-    tokens.push_back({htype, clean_text(res["CONTENT"])});
+    mimg->write_text(clean_text(res["CONTENT"]), text_map.at(htype));
 }
 
 }
