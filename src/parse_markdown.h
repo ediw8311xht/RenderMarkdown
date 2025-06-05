@@ -11,7 +11,6 @@
 namespace ParseMarkdownNS {
 
 // Declare before defining.
-typedef struct Token Token;
 enum class TokenType : int;
 class ParseMarkdown;
 
@@ -23,14 +22,6 @@ enum class TokenType : int {
     END=7       ,
 };
 
-struct Token {
-    TokenType   type = TokenType::NONE;
-    _s text = "";
-
-    Token(_s text) : text(text) {}
-    Token(TokenType type=TokenType::TEXT, _s text="", MakeImageNS::TextData text_data = MakeImageNS::TextData())
-        : type(type), text(text) {}
-};
 
 class ParseMarkdown {
     private:

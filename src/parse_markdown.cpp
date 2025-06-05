@@ -107,7 +107,6 @@ void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
     mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
     while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;
-        // tokens.push_back(handle_inline(s, res[0].first));
         handle_inline( res.prefix() );
         if      ( res["CODE"].matched   ) { handle_code(   res ); }
         else if ( res["HEADER"].matched ) { handle_header( res ); }
