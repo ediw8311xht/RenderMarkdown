@@ -1,6 +1,6 @@
 #pragma once
 
-#include "my_make_image.h"
+#include "make_image.h"
 #include "macros_defines.h"
 #include <set>
 #include <string>
