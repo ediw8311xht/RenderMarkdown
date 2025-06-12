@@ -27,22 +27,29 @@ struct TextData {
     bool     wrap        = false;
 };
 
-//|--------------------------------------------------------------------------------------|
-//|                              Notes:                                                  |
-//|--------------------------------------------------------------------------------------|
-//| `Image::rows()` is height, `Image::columns()` is width                               |
-//|--------------------------------------------------------------------------------------|
-//| Text is rendered with pango for styling (e.g., `regular <b>bold</b> <i>italic</i>`)  |
-//|--------------------------------------------------------------------------------------|
+struct ImageData {
+    _s   img_file;
+    _s   alt_text = "";
+    Geometry size {0, 0}; // Default {0, 0} for size from image.
+};
+
+
+/* |---------------------------------------------------------|
+   |  MakeImage (notes)                                      |
+   | `Image::rows()` is height, `Image::columns()` is width  |
+   |---------------------------------------------------------|
+   | Text is rendered with pango for styling                 |
+   | (e.g., `regular <b>bold</b>, <i>italic</i>`)            |
+   |---------------------------------------------------------| */
 class MakeImage {
     private:
-        // ------------------- VARS --------------------- //
+        /* ------------------- VARS --------------------- */
         Image    canvas;
         Geometry canvas_size;
-        // `subimg_geo`:
-        // Width is same as `canvas`, height is 0 so it will be automatically
-        // update from written data. This allows getting the height of the
-        // written data for `offset_y`.
+        /* `subimg_geo`:
+           Width is same as `canvas`, height is 0 so it will be automatically
+           update from written data. This allows getting the height of the
+           written data for `offset_y`. */
         Geometry subimg_geo;
         Color    canvas_bg;
         ssize_t   offset_y;
@@ -58,13 +65,14 @@ class MakeImage {
         static void setup_magick(char* arg);
         static double get_height(Image& img, const _s& text);
         MakeImage(size_t width, size_t height, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
-        // Not using const for Image, because it causes issues.
-        // Maybe reason why have to create new image since I am passing by reference
-        // And FontMetrics is modifying the Image in some way
-        void write_text(_s text, const TextData& t);
+        /* Not using const for Image, because it causes issues.
+           Maybe reason why have to create new image since I am passing by
+           reference And FontMetrics is modifying the Image in some way */
+        void add_text_to_canvas(_s text, const TextData& t);
+        void add_image_to_canvas(const ImageData&);
         void reset_image();
         void save_image(const _s& filename);
-        // More information here: https://sw.kovidgoyal.net/kitty/graphics-protocol/
+        /* More information here: https://sw.kovidgoyal.net/kitty/graphics-protocol/ */
         void display_image_kitty();
 };
 

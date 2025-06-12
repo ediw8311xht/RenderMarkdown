@@ -20,37 +20,40 @@ using Magick::Color;
 
 namespace ParseMarkdownNS {
 
-ParseMarkdown::ParseMarkdown(set<_s> files) : files( files )            { read_in_files(); }
-ParseMarkdown::ParseMarkdown(_s file)       : files( set<_s>({file}) )  { read_in_files(); }
 //------------------------------------------------------------------------------//
 //------------------------------- VARS -----------------------------------------//
 //------------------------------------------------------------------------------//
 // TextData - font size, family, fg, bg, text wrap
 const std::map< const TT, const MakeImageNS::TextData > ParseMarkdown::text_map = {
-    { TT::CODE, MakeImageNS::TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),   false ) },
-    { TT::H1,   MakeImageNS::TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H2,   MakeImageNS::TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H3,   MakeImageNS::TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H4,   MakeImageNS::TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H5,   MakeImageNS::TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::TEXT, MakeImageNS::TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, 
+    { TT::CODE,   MakeImageNS::TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),    false ) },
+    { TT::H1,     MakeImageNS::TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H2,     MakeImageNS::TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H3,     MakeImageNS::TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H4,     MakeImageNS::TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::H5,     MakeImageNS::TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
+    { TT::INLINE, MakeImageNS::TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, 
 };
-
 const regex ParseMarkdown::block_regex = regex(
-    R"((```[\n](?<CODE>.*?)[\n]```))"
+    R"((```[\n]?(?<CODE>.*?)[\n]?```))"
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
+    R"(|!\[(?<ALT_TEXT>.*?)\]\((?<IMAGE>.*?)\))"
 );
-
-const std::array< pair<regex, _s>, 4> ParseMarkdown::inline_regex = {
-    pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" },
-    pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        },
-    pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        },
-    // for inline code
-    pair<regex, _s>{ regex( R"(`(.+?)`)"         ),
-        "<span font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' > \\1 </span>"
+const reg_con ParseMarkdown::inline_regex = { 
+    pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" } , // ------- bold & italic
+    pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        } , // ------- bold
+    pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        } , // ------- italic
+    pair<regex, _s>{ regex( R"(`(.+?)`)" ),                                 // ------- inline code
+        "<span font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000'> \\1 </span>"
     },
     // pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), ""                  }
 };
+const regex ParseMarkdown::replace_chars = regex( "[&<>'\"%]" );
+
+//------------------------------------------------------------------------------//
+//------------------------------- CONSTRUCTORS ---------------------------------//
+//------------------------------------------------------------------------------//
+ParseMarkdown::ParseMarkdown(set<_s> files) : files( files )            { read_in_files(); }
+ParseMarkdown::ParseMarkdown(_s file)       : files( set<_s>({file}) )  { read_in_files(); }
 
 //------------------------------------------------------------------------------//
 //------------------------------- UTILITY --------------------------------------//
@@ -87,20 +90,12 @@ void ParseMarkdown::read_in_files() {
 //------------------------------------------------------------------------------//
 //------------------------------- CORE FUNCTIONS -------------------------------//
 //------------------------------------------------------------------------------//
-
-// void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
-//     generate_tokens();
-//     mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
-//     for (auto& [type, text] : tokens) {
-//         mimg->write_text(text, text_map.at(type));
-//     }
-// }
 void ParseMarkdown::save_image(_s output_file) {
     if (output_file == "-") { mimg->display_image_kitty();   }
     else                    { mimg->save_image(output_file); }
 }
 
-void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
+void ParseMarkdown::create_image(size_t image_width, size_t image_height) {
     _s::const_iterator s = total_str.begin();
     _s::const_iterator e = total_str.end();
     bmatch res;
@@ -110,6 +105,7 @@ void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
         handle_inline( res.prefix() );
         if      ( res["CODE"].matched   ) { handle_code(   res ); }
         else if ( res["HEADER"].matched ) { handle_header( res ); }
+        else if ( res["IMAGE"].matched  ) { handle_image( res );  }
         s = res[0].second;
     }
     if (s != e) {
@@ -121,9 +117,31 @@ void ParseMarkdown::make_image(size_t image_width, size_t image_height) {
 //------------------------------- PARSERS --------------------------------------//
 //------------------------------------------------------------------------------//
 
-const regex ParseMarkdown::replace_chars = regex( "[&<>'\"%]" );
-// Special characters need to be replaced, but `&amp;` gets turned into `&`
-// So this is the work around
+/* ------------- BLOCK -------------- */
+void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res) {
+    mimg->add_text_to_canvas(res["CODE"], text_map.at(TT::CODE));
+}
+
+void ParseMarkdown::handle_header(const bmatch& res) {
+    TT htype;
+    switch (res["HEADER"].length()) {
+        case 1: htype = TT::H1; break;
+        case 2: htype = TT::H2; break;
+        case 3: htype = TT::H3; break;
+        case 4: htype = TT::H4; break;
+        case 5: htype = TT::H5; break;
+    }
+    mimg->add_text_to_canvas(clean_text(res["CONTENT"]), text_map.at(htype));
+}
+
+void ParseMarkdown::handle_image(const bmatch& res) {
+    MakeImageNS::ImageData sub_img( res["IMAGE"] , res["ALT_TEXT"] );
+    mimg->add_image_to_canvas(sub_img);
+}
+
+/* ------------- INLINE-------------- */
+/* Special characters need to be replaced, but `&amp;` gets turned into `&`
+   So this is the work around */
 _s ParseMarkdown::clean_text(_s s) {
     return regex_replace(s, replace_chars, [](const bmatch& m) -> _s {
         switch (*m[0].first) {
@@ -142,23 +160,6 @@ void ParseMarkdown::handle_inline(_s s) {
     for (auto& [reg, repl] : inline_regex) {
         out = boost::regex_replace(out, reg, repl);
     }
-    mimg->write_text(out, text_map.at(TT::TEXT));
+    mimg->add_text_to_canvas(out, text_map.at(TT::INLINE));
 }
-
-void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res) {
-    mimg->write_text(res["CODE"], text_map.at(TT::CODE));
-}
-
-void ParseMarkdown::handle_header(const bmatch& res) {
-    TT htype;
-    switch (res["HEADER"].length()) {
-        case 1: htype = TT::H1; break;
-        case 2: htype = TT::H2; break;
-        case 3: htype = TT::H3; break;
-        case 4: htype = TT::H4; break;
-        case 5: htype = TT::H5; break;
-    }
-    mimg->write_text(clean_text(res["CONTENT"]), text_map.at(htype));
-}
-
 }

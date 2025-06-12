@@ -77,17 +77,14 @@ MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t paddi
 }
 
 void MakeImage::setup_magick(char* arg) {
-    // Must be called before making image objects
-    // Pass first argument (path where program is being run)
-    // See: http://www.graphicsmagick.org/Magick++/
+    /* Must be called before making image objects
+       Pass first argument (path where program is being run)
+       See: http://www.graphicsmagick.org/Magick++/ */
     Mag::InitializeMagick(arg);
     // Weird how this isn't mentioned in documentation???
     // Deallocates dynamically assigned memory used by magick
-    std::atexit(Mag::TerminateMagick);
-}
-void MakeImage::write_text(_s text, const TextData& t) {
-    Image img = t.wrap ? image_from_data(text, t) : image_from_data_unwrapped(text, t);
-    write_image(img);
+    // Maybe TerminateMagick is for C only (?)
+    // std::atexit(Mag::TerminateMagick);
 }
 
 void MakeImage::reset_image() {
@@ -95,7 +92,38 @@ void MakeImage::reset_image() {
     this->offset_y = padding;
 }
 
-// This chunks data in to 4096 chars
+void MakeImage::add_text_to_canvas(_s text, const TextData& t) {
+    Image sub_img = t.wrap ? image_from_data(text, t) : image_from_data_unwrapped(text, t);
+    write_image(sub_img);
+}
+
+void MakeImage::add_image_to_canvas(const ImageData& i) {
+    Image sub_img;
+    try {
+        sub_img.read(i.img_file);
+    // https://www.imagemagick.org/Magick++/Exception.html#:~:text=drawing%20on%20image.-,ErrorFileOpen,-Error%20reported%20when 
+    } catch(Magick::ErrorFileOpen& e) {
+        std::cerr << "Error Opening Image: '" << i.img_file << "'" << std::endl;
+        std::cerr << "\t" << e.what() << std::endl;
+        return;
+    } catch (Magick::Exception&  e) {
+        std::cerr << "Image: " << e.what() << std::endl;
+    }
+    if (i.size.width() != 0 || i.size.height() != 0) {
+        // Setting width/height to 0 will keep aspect ratio when resizing
+        sub_img.resize(i.size);
+    }
+    write_image(sub_img);
+}
+
+void MakeImage::save_image(const _s& filename) {
+    canvas.write(filename);
+}
+
+/* send_data (const, _stype, _stype, bool)
+   This chunks data in to 4096 chars. Start sending streamed data Data is sent
+   straight to terminal using escape sequences which are interpreted by Kitty.
+   Data must be chunked in 4096 chars */
 void MakeImage::send_data(const _s& s, _stype i, _stype size, bool start) {
     P(CHUNK_SEP);
     if (start) {
@@ -109,22 +137,14 @@ void MakeImage::send_data(const _s& s, _stype i, _stype size, bool start) {
     P(CHUNK_END);
     return ni < size ? send_data(s, ni, size, false) : ( P("\n") , void() );
 }
-// Display to terminal
+/* display_image_kitty() [display to terminal] */
 void MakeImage::display_image_kitty() {
     Blob b;
-    // We need to PNG this format for matching Kitty Graphics Protocol Specs
-    // Note: KGP supports sending rgb/rgba data as well (more difficult tbh)
+    /* We need to PNG this format for matching Kitty Graphics Protocol Specs
+       Note: KGP supports sending rgb/rgba data as well (more difficult tbh) */
     canvas.magick("PNG");
     canvas.write(&b);
-    // Needs to be base64 encoded
-    _s s = b.base64();
-    // Start sending streamed data
-    // Data is sent straight to terminal using escape sequences which are interpreted by Kitty.
-    // Data must be chunked in 4096 chars
+    _s s = b.base64(); // Needs to be base64 encoded
     send_data(s);
-}
-
-void MakeImage::save_image(const _s& filename) {
-    canvas.write(filename);
 }
 
