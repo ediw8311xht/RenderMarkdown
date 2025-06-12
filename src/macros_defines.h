@@ -20,5 +20,7 @@
 #define BEGIN_DATA_SIZE 13
 
 #define DEFAULT_LINE_SPACING 1
+#define DRAWN_LINE_SIZE      4
+#define DRAWN_LINE_MARGIN    2
 
 using _s = std::string;

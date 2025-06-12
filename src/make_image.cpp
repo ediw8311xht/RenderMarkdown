@@ -8,6 +8,31 @@ namespace Mag = Magick;
 using Magick::TypeMetric;
 using Magick::Blob;
 
+MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding, int line_spacing )
+    : canvas_size(width, height),
+      subimg_geo(width-(padding*2), 0),
+      canvas_bg(canvas_bg),
+      offset_y(padding),
+      padding(padding),
+      line_spacing(line_spacing)
+{
+    // Initialize canvas
+    canvas = Image({width, height}, canvas_bg);
+    // Using density for base image ONLY
+    canvas.density({300, 300});
+    canvas.resolutionUnits(Mag::PixelsPerInchResolution);
+}
+
+void MakeImage::setup_magick(char* arg) {
+    /* Must be called before making image objects
+       Pass first argument (path where program is being run)
+       See: http://www.graphicsmagick.org/Magick++/ */
+    Mag::InitializeMagick(arg);
+    // Weird how this isn't mentioned in documentation???
+    // Deallocates dynamically assigned memory used by magick
+    // Maybe TerminateMagick is for C only (?)
+    // std::atexit(Mag::TerminateMagick);
+}
 /* Get height using Magick::TypeMetric
    Image Geometry doesn't matter, but settings for image like fontPointsize
    must be set This Magick::TypeMetric also shows other information such as the
@@ -58,33 +83,10 @@ Image MakeImage::image_from_data(_s text, const TextData& t ) {
 }
 
 void MakeImage::write_image(Image& img) {
-    canvas.composite(img, 2, offset_y, Mag::OverCompositeOp);
+    canvas.composite(img, padding, offset_y, Mag::OverCompositeOp);
     // Update offset to adjust for written image
     // img.rows() is  the height of the image.
     offset_y += img.rows() + line_spacing;
-}
-
-MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding, int line_spacing )
-    : canvas_size(width, height)     , subimg_geo(width-(padding*2), 0) ,
-      canvas_bg(canvas_bg)           , offset_y(padding) ,
-      line_spacing(line_spacing)
-{
-    // Initialize canvas
-    canvas = Image({width, height}, canvas_bg);
-    // Using density for base image ONLY
-    canvas.density({300, 300});
-    canvas.resolutionUnits(Mag::PixelsPerInchResolution);
-}
-
-void MakeImage::setup_magick(char* arg) {
-    /* Must be called before making image objects
-       Pass first argument (path where program is being run)
-       See: http://www.graphicsmagick.org/Magick++/ */
-    Mag::InitializeMagick(arg);
-    // Weird how this isn't mentioned in documentation???
-    // Deallocates dynamically assigned memory used by magick
-    // Maybe TerminateMagick is for C only (?)
-    // std::atexit(Mag::TerminateMagick);
 }
 
 void MakeImage::reset_image() {
@@ -101,13 +103,13 @@ void MakeImage::add_image_to_canvas(const ImageData& i) {
     Image sub_img;
     try {
         sub_img.read(i.img_file);
-    // https://www.imagemagick.org/Magick++/Exception.html#:~:text=drawing%20on%20image.-,ErrorFileOpen,-Error%20reported%20when 
+    // https://www.imagemagick.org/Magick++/Exception.html
     } catch(Magick::ErrorFileOpen& e) {
         std::cerr << "Error Opening Image: '" << i.img_file << "'" << std::endl;
         std::cerr << "\t" << e.what() << std::endl;
         return;
     } catch (Magick::Exception&  e) {
-        std::cerr << "Image: " << e.what() << std::endl;
+        std::cerr << "Error Image: " << e.what() << std::endl;
     }
     if (i.size.width() != 0 || i.size.height() != 0) {
         // Setting width/height to 0 will keep aspect ratio when resizing
@@ -118,6 +120,14 @@ void MakeImage::add_image_to_canvas(const ImageData& i) {
 
 void MakeImage::save_image(const _s& filename) {
     canvas.write(filename);
+}
+
+void MakeImage::add_line_to_canvas() {
+    canvas.strokeColor("black");
+    canvas.fillColor("black");
+    canvas.strokeWidth(DRAWN_LINE_SIZE);
+    canvas.draw(Magick::DrawableLine(padding, offset_y + DRAWN_LINE_MARGIN, this->subimg_geo.width(), offset_y));
+    offset_y += DRAWN_LINE_SIZE + DRAWN_LINE_MARGIN + line_spacing;
 }
 
 /* send_data (const, _stype, _stype, bool)

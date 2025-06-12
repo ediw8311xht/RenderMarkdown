@@ -68,6 +68,7 @@ class MakeImage {
         /* Not using const for Image, because it causes issues.
            Maybe reason why have to create new image since I am passing by
            reference And FontMetrics is modifying the Image in some way */
+        void add_line_to_canvas();
         void add_text_to_canvas(_s text, const TextData& t);
         void add_image_to_canvas(const ImageData&);
         void reset_image();

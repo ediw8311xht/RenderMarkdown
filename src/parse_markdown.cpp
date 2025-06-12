@@ -37,6 +37,7 @@ const regex ParseMarkdown::block_regex = regex(
     R"((```[\n]?(?<CODE>.*?)[\n]?```))"
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
     R"(|!\[(?<ALT_TEXT>.*?)\]\((?<IMAGE>.*?)\))"
+    R"(|(^|\n)(?<LINE>[-]{3,}[ \t]*)(\n|$))"
 );
 const reg_con ParseMarkdown::inline_regex = { 
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" } , // ------- bold & italic
@@ -106,6 +107,7 @@ void ParseMarkdown::create_image(size_t image_width, size_t image_height) {
         if      ( res["CODE"].matched   ) { handle_code(   res ); }
         else if ( res["HEADER"].matched ) { handle_header( res ); }
         else if ( res["IMAGE"].matched  ) { handle_image( res );  }
+        else if ( res["LINE"].matched   ) { handle_line( res );   }
         s = res[0].second;
     }
     if (s != e) {
@@ -137,6 +139,10 @@ void ParseMarkdown::handle_header(const bmatch& res) {
 void ParseMarkdown::handle_image(const bmatch& res) {
     MakeImageNS::ImageData sub_img( res["IMAGE"] , res["ALT_TEXT"] );
     mimg->add_image_to_canvas(sub_img);
+}
+
+void ParseMarkdown::handle_line(const bmatch& res) {
+    mimg->add_line_to_canvas();
 }
 
 /* ------------- INLINE-------------- */

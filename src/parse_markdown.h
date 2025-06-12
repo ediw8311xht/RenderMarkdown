@@ -46,6 +46,7 @@ class ParseMarkdown {
         void handle_code(   const boost::match_results<_s::const_iterator>& res );
         void handle_header( const boost::match_results<_s::const_iterator>& res );
         void handle_image(  const boost::match_results<_s::const_iterator>& res );
+        void handle_line(   const boost::match_results<_s::const_iterator>& res );
         /* Text must be cleaned since both pango and Magick++ use certain
            characters for formatting Inline for formatting that is done within
            the text using pango */
