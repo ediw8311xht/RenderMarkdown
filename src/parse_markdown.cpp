@@ -11,6 +11,7 @@ using TT = ParseMarkdownNS::TokenType;
 //----------------------------------------------------- Standard Library -------//
 using std::pair;
 using std::set;
+using std::format;
 //----------------------------------------------------- Boost ------------------//
 using boost::regex;
 using bmatch = boost::match_results<_s::const_iterator>;
@@ -40,13 +41,15 @@ const regex ParseMarkdown::block_regex = regex(
     R"(|(^|\n)(?<LINE>[-]{3,}[ \t]*)(\n|$))"
 );
 const reg_con ParseMarkdown::inline_regex = { 
+    pair<regex, _s>{ regex( R"(`(.+?)`)" ),                                 // ------- inline code
+        "<span " STYLE_INLINE_CODE " > \\1 </span>"
+    },
+    pair<regex, _s>{ regex( R"(\[(.+?)\]\((.+?)\))" ),                      // ------- inline link
+        "<b>\\1</b>: <span " STYLE_INLINE_LINK " >\\2</span>"
+    },
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" } , // ------- bold & italic
     pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        } , // ------- bold
     pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), "<i>\\1</i>"        } , // ------- italic
-    pair<regex, _s>{ regex( R"(`(.+?)`)" ),                                 // ------- inline code
-        "<span font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000'> \\1 </span>"
-    },
-    // pair<regex, _s>{ regex( R"(\*(.+?)\*)"       ), ""                  }
 };
 const regex ParseMarkdown::replace_chars = regex( "[&<>'\"%]" );
 
@@ -75,7 +78,7 @@ void ParseMarkdown::_read_in_files(set<_s>& f, set<_s>::iterator i, set<_s>::ite
     std::optional<_s> o = file_as_string(*i);
     // this->str_files.push_back(o);
     if (!o.has_value()) {
-        std::cerr << std::format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
+        std::cerr << format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
         exit(2);
     }
     else { this->total_str += o.value(); }

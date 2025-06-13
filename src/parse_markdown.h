@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 
 namespace ParseMarkdownNS {
-using reg_con = std::array< std::pair<boost::regex, _s>, 4>;
+using reg_con = std::array< std::pair<boost::regex, _s>, 5>;
 
 enum class TokenType : int {
     NONE   =-1,

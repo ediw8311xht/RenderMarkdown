@@ -22,5 +22,8 @@
 #define DEFAULT_LINE_SPACING 1
 #define DRAWN_LINE_SIZE      4
 #define DRAWN_LINE_MARGIN    2
+#define STYLE_INLINE_CODE " font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000' "
+#define STYLE_INLINE_LINK " font_family='Noto-Sans' fgcolor='#0044FF' "
+
 
 using _s = std::string;

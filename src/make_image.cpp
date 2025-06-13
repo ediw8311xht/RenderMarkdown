@@ -115,6 +115,9 @@ void MakeImage::add_image_to_canvas(const ImageData& i) {
         // Setting width/height to 0 will keep aspect ratio when resizing
         sub_img.resize(i.size);
     }
+    else {
+        sub_img.resize(subimg_geo);
+    }
     write_image(sub_img);
 }
 
