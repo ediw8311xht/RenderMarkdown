@@ -5,7 +5,7 @@
 _run_this() {
 
 local make_args="${*}"
-local bin_args=""
+local bin_args=()
 local binary="RenderMarkdown"
 if [[ "${*}" =~ (.*)([^ ]--[ ])(.*) ]] ; then
     make_args="${BASH_REMATCH[0]}"
@@ -34,7 +34,7 @@ main() {
         make_clean
     elif in_arr '-v' "${@}" ; then
         valgrind ./"${binary}" "${bin_args[@]}"
-    elif in_arr '-cc' "${@}" ; then
+    elif in_arr '-C' "${@}" ; then
         make_clean && make_compile "${@}"
     elif in_arr '-t' "${@}" ; then
         ./"${binary}" -t "${bin_args[@]}"

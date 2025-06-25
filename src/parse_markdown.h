@@ -41,10 +41,10 @@ class ParseMarkdown {
            issue with opening the file. */
         _s clean_text(_s s);
         void _read_in_files( std::set<_s>& f, std::set<_s>::iterator i, std::set<_s>::iterator e );
-        void handle_code(   const boost::match_results<_s::const_iterator>& res );
-        void handle_header( const boost::match_results<_s::const_iterator>& res );
-        void handle_image(  const boost::match_results<_s::const_iterator>& res );
-        void handle_line(   const boost::match_results<_s::const_iterator>& res );
+        void handle_code(   MakeImageNS::MakeImage& mimg, const boost::match_results<_s::const_iterator>& res );
+        void handle_header( MakeImageNS::MakeImage& mimg, const boost::match_results<_s::const_iterator>& res );
+        void handle_image(  MakeImageNS::MakeImage& mimg, const boost::match_results<_s::const_iterator>& res );
+        void handle_line(   MakeImageNS::MakeImage& mimg, const boost::match_results<_s::const_iterator>& res );
         /* Text must be cleaned since both pango and Magick++ use certain
            characters for formatting Inline for formatting that is done within
            the text using pango */
@@ -55,7 +55,7 @@ class ParseMarkdown {
         explicit ParseMarkdown(_s file);
 
         void read_in_files();
-        void create_image(size_t image_width, size_t image_height);
+        void create_image(MakeImageNS::MakeImage& mimg);
         void save_image(_s output_file);
 };
 

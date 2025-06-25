@@ -65,7 +65,8 @@ void RenderMarkdown::initialize_options() {
 
 void RenderMarkdown::run_program() {
     ParseMarkdown parse_m(prog_args.input_files);
-    parse_m.create_image(prog_args.img_width, prog_args.img_height);
+    MakeImageNS::MakeImage mimg(prog_args.img_width, prog_args.img_height);
+    parse_m.create_image(mimg);
     std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
         [&parse_m](_s ofile) -> void {
             parse_m.save_image(ofile);

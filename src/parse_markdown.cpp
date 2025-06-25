@@ -6,6 +6,7 @@
 
 //----------------------------------------------------- Mine -------------------//
 using TT = ParseMarkdownNS::TokenType;
+using IMG = MakeImageNS::MakeImage;
 //----------------------------------------------------- Standard Library -------//
 using std::pair;
 using std::set;
@@ -87,18 +88,17 @@ void ParseMarkdown::save_image(_s output_file) {
     else                    { mimg->save_image(output_file); }
 }
 
-void ParseMarkdown::create_image(size_t image_width, size_t image_height) {
+void ParseMarkdown::create_image(IMG& mimg) {
     _s::const_iterator s = total_str.begin();
     _s::const_iterator e = total_str.end();
     bmatch res;
-    mimg = std::make_unique<MakeImageNS::MakeImage>(image_width, image_height);
     while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;
         handle_inline( res.prefix() );
-        if      ( res["CODE"].matched   ) { handle_code(   res ); }
-        else if ( res["HEADER"].matched ) { handle_header( res ); }
-        else if ( res["IMAGE"].matched  ) { handle_image( res );  }
-        else if ( res["LINE"].matched   ) { handle_line( res );   }
+        if      ( res["CODE"].matched   ) { handle_code(   mimg, res ); }
+        else if ( res["HEADER"].matched ) { handle_header( mimg, res ); }
+        else if ( res["IMAGE"].matched  ) { handle_image(  mimg, res ); }
+        else if ( res["LINE"].matched   ) { handle_line(   mimg, res ); }
         s = res[0].second;
     }
     if (s != e) {
@@ -111,11 +111,11 @@ void ParseMarkdown::create_image(size_t image_width, size_t image_height) {
 //------------------------------------------------------------------------------//
 
 /* ------------- BLOCK -------------- */
-void ParseMarkdown::ParseMarkdown::handle_code(const bmatch& res) {
-    mimg->add_text_to_canvas(res["CODE"], text_map.at(TT::CODE));
+void ParseMarkdown::handle_code(IMG& mimg, const bmatch& res) {
+    mimg.add_text_to_canvas(res["CODE"], text_map.at(TT::CODE));
 }
 
-void ParseMarkdown::handle_header(const bmatch& res) {
+void ParseMarkdown::handle_header(IMG& mimg, const bmatch& res) {
     TT htype;
     switch (res["HEADER"].length()) {
         case 1: htype = TT::H1; break;
@@ -124,16 +124,16 @@ void ParseMarkdown::handle_header(const bmatch& res) {
         case 4: htype = TT::H4; break;
         case 5: htype = TT::H5; break;
     }
-    mimg->add_text_to_canvas(clean_text(res["CONTENT"]), text_map.at(htype));
+    mimg.add_text_to_canvas(clean_text(res["CONTENT"]), text_map.at(htype));
 }
 
-void ParseMarkdown::handle_image(const bmatch& res) {
+void ParseMarkdown::handle_image(IMG& mimg, const bmatch& res) {
     MakeImageNS::ImageData sub_img( res["IMAGE"] , res["ALT_TEXT"] );
-    mimg->add_image_to_canvas(sub_img);
+    mimg.add_image_to_canvas(sub_img);
 }
 
-void ParseMarkdown::handle_line(const bmatch& res) {
-    mimg->add_line_to_canvas();
+void ParseMarkdown::handle_line(IMG& mimg, const bmatch& res) {
+    mimg.add_line_to_canvas();
 }
 
 /* ------------- INLINE-------------- */
