@@ -11,6 +11,7 @@ typedef struct ProgArgs {
     size_t       img_width    =   800;
     size_t       img_height   =  1000;
     bool         overwrite    = false;
+    _s           config_file  = DEFAULT_CONFIG;
     ProgArgs() {}
 } ProgArgs;
 

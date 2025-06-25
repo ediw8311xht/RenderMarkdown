@@ -1,48 +1,64 @@
 #include "render_markdown.h"
 #include "parse_markdown.h"
 #include "test.h"
-#include "macros_defines.h"
-#include <iostream>
 #include <format>
-#include <set>
-#include <filesystem>
 #include <execution>
 #include <boost/program_options.hpp>
+#include <filesystem>
 
 using ParseMarkdownNS::ParseMarkdown;
 using namespace boost::program_options;
 using std::filesystem::exists;
-
+using filepath = std::filesystem::path;
 namespace RenderMarkdownNS {
 
 //-------------------------
 void RenderMarkdown::initialize_options() {
     bool dflag = false;
+//----- OPTIONS -----//
     this->flags.add_options()
     //--- Special -----------//
         ( "help,h" , bool_switch(&dflag) , "print help" )
         ( "test,t" , bool_switch(&dflag) , "run tests"  )
     //--- Flags/Options -----//
-        ( "width,W" , value<size_t>( &this->prog_args.img_width )->default_value(DEFAULT_WIDTH) ,
-          "image width"  )
-        ( "height,H" , value<size_t>( &this->prog_args.img_height )->default_value(DEFAULT_HEIGHT) ,
-          "image height" )
-        ( "display,d" , bool_switch(&dflag)->notifier(
-                [this](bool n) { if (n) { prog_args.output_files.insert("-"); } }
-            ) , "display to terminal" )
-        ( "overwrite,O"   , bool_switch(&dflag)->notifier(
-                [this](bool n) { this->prog_args.overwrite = n; }
-            ) , "overwrite output file" )
+        (
+            "width,W",    
+                value<size_t>( &this->prog_args.img_width )->
+                default_value(DEFAULT_WIDTH),
+            "Canvas width"  )
+        (   "height,H",   
+                value<size_t>( &this->prog_args.img_height )->
+                default_value(DEFAULT_HEIGHT),
+            "Canvas height" )
+        (
+            "config,c",   
+                value<_s>( &this->prog_args.config_file )->default_value(DEFAULT_CONFIG),
+            "Config File (json)" )
+        (
+            "display,d",      
+                bool_switch(&dflag)->
+                notifier( [this](bool n) { if (n) { prog_args.output_files.insert("-"); } } ),
+            "display to terminal" )
+        (
+            "overwrite,O",
+                bool_switch(&dflag)->
+                notifier( [this](bool n) { this->prog_args.overwrite = n; } ),
+            "overwrite output file" )
     //--- Args --------------//
-        ( "input-file,i"  , value<_s>()->default_value("")->notifier(
-                [this](_s f) { this->prog_args.input_files = {f}; }
-            ) , "input file" )
-        ( "output-file,o" , value<_s>()->default_value("")->notifier(
-                [this](_s f) {
-                    if (f != "") { this->prog_args.output_files.insert(f); }
-                }
-            ) , "output file" )
+        (
+            "input-file,i",
+                value<_s>()->
+                default_value("")->
+                notifier( [this](_s f) { this->prog_args.input_files = {f}; } ),
+            "input file" )
+        (
+            "output-file,o" , 
+                value<_s>()->
+                default_value("")->
+                notifier( [this](_s f) { if (f != "") { this->prog_args.output_files.insert(f); } } ),  
+            "output file" )
     ;
+//----- END OPTIONS -----//
     this->posargs.add("input-file"  , 1);
     this->posargs.add("output-file" , 1);
 }

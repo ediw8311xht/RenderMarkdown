@@ -4,7 +4,6 @@
 #include "macros_defines.h"
 #include <set>
 #include <string>
-#include <optional>
 #include <map>
 #include <boost/regex.hpp>
 
@@ -37,7 +36,6 @@ class ParseMarkdown {
         std::set<std::optional<_s>> str_files; // Lines of files
         _s total_str;                          // Concenated contents of all files
         //----------------------------- Functions ----------//
-        std::optional<_s> file_as_string(_s file_string);
         /* Internal function for read_in_files()
            optional<string> so value returned can indicate when there is an
            issue with opening the file. */

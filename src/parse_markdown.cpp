@@ -2,9 +2,7 @@
 #include "macros_defines.h"
 #include <iostream>
 #include <format>
-#include <fstream>
 #include <Magick++.h>
-#include <sstream> // For stringstream
 
 //----------------------------------------------------- Mine -------------------//
 using TT = ParseMarkdownNS::TokenType;
@@ -62,16 +60,6 @@ ParseMarkdown::ParseMarkdown(_s file)       : files( set<_s>({file}) )  { read_i
 //------------------------------------------------------------------------------//
 //------------------------------- UTILITY --------------------------------------//
 //------------------------------------------------------------------------------//
-std::optional<_s> ParseMarkdown::file_as_string(_s file_string) {
-    std::ifstream file(file_string);
-    if ( file.is_open() ) {
-        std::stringstream s;
-        s << file.rdbuf();
-        file.close();
-        return s.str();
-    }
-    return std::nullopt;
-}
 
 void ParseMarkdown::_read_in_files(set<_s>& f, set<_s>::iterator i, set<_s>::iterator e) {
     if (i == e) { return; }
