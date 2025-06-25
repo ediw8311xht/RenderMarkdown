@@ -32,7 +32,14 @@ struct ImageData {
     _s   alt_text = "";
     Geometry size {0, 0}; // Default {0, 0} for size from image.
 };
-
+typedef struct MdSettings {
+    const size_t width      = DEFAULT_WIDTH;
+    const size_t height     = DEFAULT_HEIGHT;
+    const Color canvas_bg   = DEFAULT_CANVAS_BG;
+    const ssize_t padding   = DEFAULT_PADDING;
+    const int line_spacing  = DEFAULT_LINE_SPACING;
+    const size_t sub_width  = this->width - this->padding;
+} MdSettings;
 
 /* |---------------------------------------------------------|
    |  MakeImage (notes)                                      |
@@ -46,15 +53,8 @@ class MakeImage {
         /* ------------------- VARS --------------------- */
         Image    canvas;
         Geometry canvas_size;
-        /* `subimg_geo`:
-           Width is same as `canvas`, height is 0 so it will be automatically
-           update from written data. This allows getting the height of the
-           written data for `offset_y`. */
-        Geometry subimg_geo;
-        Color    canvas_bg;
-        ssize_t   offset_y;
-        ssize_t    padding;
-        const int line_spacing = DEFAULT_LINE_SPACING;
+        ssize_t  offset_y;
+        const MdSettings settings;
 
         Image image_from_data(_s text, const TextData& t);
         Image image_from_data_unwrapped(_s text, const TextData& t);
@@ -64,7 +64,7 @@ class MakeImage {
         static void send_data(const _s& s, _stype i = 0, _stype size=0, bool start=true);
         static void setup_magick(char* arg);
         static double get_height(Image& img, const _s& text);
-        MakeImage(size_t width, size_t height, Color canvas_bg="white",  ssize_t padding=5, int line_spacing=1);
+        MakeImage(const MdSettings& s);
         /* Not using const for Image, because it causes issues.
            Maybe reason why have to create new image since I am passing by
            reference And FontMetrics is modifying the Image in some way */

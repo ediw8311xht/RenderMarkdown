@@ -8,16 +8,17 @@ namespace Mag = Magick;
 using Magick::TypeMetric;
 using Magick::Blob;
 
-MakeImage::MakeImage(size_t width, size_t height, Color canvas_bg, ssize_t padding, int line_spacing )
-    : canvas_size(width, height),
-      subimg_geo(width-(padding*2), 0),
-      canvas_bg(canvas_bg),
-      offset_y(padding),
-      padding(padding),
-      line_spacing(line_spacing)
+MakeImage::MakeImage(const MdSettings& s) : settings(s)
+    // : canvas_size(width, height),
+    //   subimg_geo(width-(padding*2), 0),
+    //   canvas_bg(canvas_bg),
+    //   offset_y(padding),
+    //   padding(padding),
+    //   line_spacing(line_spacing)
 {
     // Initialize canvas
-    canvas = Image({width, height}, canvas_bg);
+    offset_y = settings.padding;
+    canvas = Image({settings.width, settings.height}, settings.canvas_bg);
     // Using density for base image ONLY
     canvas.density({300, 300});
     canvas.resolutionUnits(Mag::PixelsPerInchResolution);
@@ -58,7 +59,7 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
     size_t text_height = std::ceil(get_height(check_image, text));
     // Resizing & drawing text on resized image causes issues. So making new
     // image.
-    Image new_img({subimg_geo.width(), text_height}, t.bg);
+    Image new_img({settings.sub_width, text_height}, t.bg);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
     new_img.fillColor(t.fg);
@@ -72,7 +73,7 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
    automatically adjust to fit text. Note: Ensure text wrapping the width is
    set to the size of the canvas (minus padding on both side) */
 Image MakeImage::image_from_data(_s text, const TextData& t ) {
-    Image new_img(subimg_geo, t.bg);
+    Image new_img(Geometry(settings.width, 0), t.bg);
     new_img.resolutionUnits(Mag::PixelsPerInchResolution);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
@@ -83,15 +84,15 @@ Image MakeImage::image_from_data(_s text, const TextData& t ) {
 }
 
 void MakeImage::write_image(Image& img) {
-    canvas.composite(img, padding, offset_y, Mag::OverCompositeOp);
+    canvas.composite(img, settings.padding, this->offset_y, Mag::OverCompositeOp);
     // Update offset to adjust for written image
     // img.rows() is  the height of the image.
-    offset_y += img.rows() + line_spacing;
+    this->offset_y += img.rows() + settings.line_spacing;
 }
 
 void MakeImage::reset_image() {
     canvas.erase();
-    this->offset_y = padding;
+    this->offset_y = settings.padding;
 }
 
 void MakeImage::add_text_to_canvas(_s text, const TextData& t) {
@@ -116,7 +117,7 @@ void MakeImage::add_image_to_canvas(const ImageData& i) {
         sub_img.resize(i.size);
     }
     else {
-        sub_img.resize(subimg_geo);
+        sub_img.resize(Geometry(settings.sub_width, 0));
     }
     write_image(sub_img);
 }
@@ -129,8 +130,8 @@ void MakeImage::add_line_to_canvas() {
     canvas.strokeColor("black");
     canvas.fillColor("black");
     canvas.strokeWidth(DRAWN_LINE_SIZE);
-    canvas.draw(Magick::DrawableLine(padding, offset_y + DRAWN_LINE_MARGIN, this->subimg_geo.width(), offset_y));
-    offset_y += DRAWN_LINE_SIZE + DRAWN_LINE_MARGIN + line_spacing;
+    canvas.draw(Magick::DrawableLine(settings.padding, offset_y + DRAWN_LINE_MARGIN, settings.sub_width, offset_y));
+    offset_y += DRAWN_LINE_SIZE + DRAWN_LINE_MARGIN + settings.line_spacing;
 }
 
 /* send_data (const, _stype, _stype, bool)

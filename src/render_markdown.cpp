@@ -7,6 +7,7 @@
 #include <filesystem>
 
 using ParseMarkdownNS::ParseMarkdown;
+using MakeImageNS::MdSettings;
 using namespace boost::program_options;
 using std::filesystem::exists;
 using filepath = std::filesystem::path;
@@ -63,9 +64,18 @@ void RenderMarkdown::initialize_options() {
     this->posargs.add("output-file" , 1);
 }
 
+// typedef struct MdSettings {
+//     const size_t width;
+//     const size_t height;
+//     const Color canvas_bg="white";
+//     const ssize_t padding=5;
+//     const int line_spacing=DEFAULT_LINE_SPACING;
+//     const Geometry subimg_geo;
+// } MdSettings;
 void RenderMarkdown::run_program() {
     ParseMarkdown parse_m(prog_args.input_files);
-    MakeImageNS::MakeImage mimg(prog_args.img_width, prog_args.img_height);
+    const MdSettings settings;
+    MakeImageNS::MakeImage mimg(settings);
     parse_m.create_image(mimg);
     std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
         [&parse_m](_s ofile) -> void {
