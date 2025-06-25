@@ -4,7 +4,7 @@
 # RECIPEPREFIX so dumb, just remember to use only 1 space before (' ') before
 # command ( '$() $()' )
 
-CXX = g++
+CXX = ccache g++
 RM = rm -f
 
 CXXFLAGS = -Wall -std=c++20

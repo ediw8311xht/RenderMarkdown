@@ -9,6 +9,7 @@ namespace MakeImageNS {
 
 
 typedef struct TextData TextData;
+typedef struct MdSettings MdSettings;
 using Magick::Color;
 using Magick::ColorRGB;
 // using Magick::StyleType;
@@ -32,14 +33,15 @@ struct ImageData {
     _s   alt_text = "";
     Geometry size {0, 0}; // Default {0, 0} for size from image.
 };
-typedef struct MdSettings {
-    const size_t width      = DEFAULT_WIDTH;
-    const size_t height     = DEFAULT_HEIGHT;
-    const Color canvas_bg   = DEFAULT_CANVAS_BG;
-    const ssize_t padding   = DEFAULT_PADDING;
-    const int line_spacing  = DEFAULT_LINE_SPACING;
-    const size_t sub_width  = this->width - this->padding;
-} MdSettings;
+struct MdSettings {
+    size_t width      = DEFAULT_WIDTH;
+    size_t height     = DEFAULT_HEIGHT;
+    Color canvas_bg   = DEFAULT_CANVAS_BG;
+    ssize_t padding   = DEFAULT_PADDING;
+    int line_spacing  = DEFAULT_LINE_SPACING;
+    size_t sub_width  = 700;
+    // MdSettings(size_t width, size_t height) : width(width), height(height) {}
+};
 
 /* |---------------------------------------------------------|
    |  MakeImage (notes)                                      |

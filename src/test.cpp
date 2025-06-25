@@ -21,14 +21,14 @@ void TestRenderMarkdown::test_bold_italic() {
     MakeImageNS::MdSettings settings;
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
-    a.save_image("TEST_FILES/test_bold_italic.jpeg");
+    a.save_image(img, "TEST_FILES/test_bold_italic.jpeg");
 }
 void TestRenderMarkdown::test_code() {
     ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_code.md");
     MakeImageNS::MdSettings settings;
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
-    a.save_image("TEST_FILES/test_code.jpeg");
+    a.save_image(img, "TEST_FILES/test_code.jpeg");
 
 }
 void TestRenderMarkdown::test_header() {
@@ -36,22 +36,22 @@ void TestRenderMarkdown::test_header() {
     MakeImageNS::MdSettings settings;
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
-    a.save_image("TEST_FILES/test_header.jpeg");
+    a.save_image(img, "TEST_FILES/test_header.jpeg");
 }
 void TestRenderMarkdown::test_together() {
     ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_together.md");
     MakeImageNS::MdSettings settings;
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
-    a.save_image("TEST_FILES/test_together.jpeg");
+    a.save_image(img, "TEST_FILES/test_together.jpeg");
 }
 
 void TestRenderMarkdown::test_display() {
     ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_together.md" );
-    MakeImageNS::MdSettings settings;
+    MakeImageNS::MdSettings settings(900, 500);
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
-    a.save_image("-");
+    a.save_image(img, "-");
 }
 
 void TestRenderMarkdown::run(std::string test) {

@@ -83,9 +83,9 @@ void ParseMarkdown::read_in_files() {
 //------------------------------------------------------------------------------//
 //------------------------------- CORE FUNCTIONS -------------------------------//
 //------------------------------------------------------------------------------//
-void ParseMarkdown::save_image(_s output_file) {
-    if (output_file == "-") { mimg->display_image_kitty();   }
-    else                    { mimg->save_image(output_file); }
+void ParseMarkdown::save_image(IMG& mimg, _s output_file) {
+    if (output_file == "-") { mimg.display_image_kitty();   }
+    else                    { mimg.save_image(output_file); }
 }
 
 void ParseMarkdown::create_image(IMG& mimg) {
@@ -94,7 +94,7 @@ void ParseMarkdown::create_image(IMG& mimg) {
     bmatch res;
     while (boost::regex_search(s, e, res, block_regex)) {
         bmatch n;
-        handle_inline( res.prefix() );
+        handle_inline(mimg, res.prefix() );
         if      ( res["CODE"].matched   ) { handle_code(   mimg, res ); }
         else if ( res["HEADER"].matched ) { handle_header( mimg, res ); }
         else if ( res["IMAGE"].matched  ) { handle_image(  mimg, res ); }
@@ -102,7 +102,7 @@ void ParseMarkdown::create_image(IMG& mimg) {
         s = res[0].second;
     }
     if (s != e) {
-        handle_inline( _s(s, e));
+        handle_inline(mimg, _s(s, e));
     }
 }
 
@@ -152,11 +152,11 @@ _s ParseMarkdown::clean_text(_s s) {
         return m.str();
     });
 }
-void ParseMarkdown::handle_inline(_s s) {
+void ParseMarkdown::handle_inline(IMG& mimg, _s s) {
     _s out = clean_text(s);
     for (auto& [reg, repl] : inline_regex) {
         out = boost::regex_replace(out, reg, repl);
     }
-    mimg->add_text_to_canvas(out, text_map.at(TT::INLINE));
+    mimg.add_text_to_canvas(out, text_map.at(TT::INLINE));
 }
 }

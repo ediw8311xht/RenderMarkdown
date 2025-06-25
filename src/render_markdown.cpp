@@ -1,6 +1,7 @@
 #include "render_markdown.h"
 #include "parse_markdown.h"
 #include "test.h"
+#include "make_image.h"
 #include <format>
 #include <execution>
 #include <boost/program_options.hpp>
@@ -64,22 +65,14 @@ void RenderMarkdown::initialize_options() {
     this->posargs.add("output-file" , 1);
 }
 
-// typedef struct MdSettings {
-//     const size_t width;
-//     const size_t height;
-//     const Color canvas_bg="white";
-//     const ssize_t padding=5;
-//     const int line_spacing=DEFAULT_LINE_SPACING;
-//     const Geometry subimg_geo;
-// } MdSettings;
 void RenderMarkdown::run_program() {
     ParseMarkdown parse_m(prog_args.input_files);
-    const MdSettings settings;
-    MakeImageNS::MakeImage mimg(settings);
-    parse_m.create_image(mimg);
+    MdSettings settings(prog_args.img_width, prog_args.img_height);
+    MakeImageNS::MakeImage img(settings);
+    parse_m.create_image(img);
     std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
-        [&parse_m](_s ofile) -> void {
-            parse_m.save_image(ofile);
+        [&img, &parse_m](_s ofile) -> void {
+            parse_m.save_image(img, ofile);
         }
     );
 }

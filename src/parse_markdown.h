@@ -24,8 +24,6 @@ class ParseMarkdown {
     private:
         //----------------------------- FORMATTING ---------//
         static const std::map< const TokenType, const MakeImageNS::TextData > text_map;
-        //----------------------------- IMAGE --------------//
-        std::unique_ptr<MakeImageNS::MakeImage> mimg;
         //----------------------------- Maps ---------------//
         // static const regex full_regex;
         static const boost::regex replace_chars;
@@ -48,7 +46,7 @@ class ParseMarkdown {
         /* Text must be cleaned since both pango and Magick++ use certain
            characters for formatting Inline for formatting that is done within
            the text using pango */
-        void handle_inline(_s s);
+        void handle_inline(MakeImageNS::MakeImage& mimg, _s s);
     public:
         // Explicit since reading in files happens when intialized.
         explicit ParseMarkdown(std::set<_s> files={});
@@ -56,7 +54,7 @@ class ParseMarkdown {
 
         void read_in_files();
         void create_image(MakeImageNS::MakeImage& mimg);
-        void save_image(_s output_file);
+        void save_image(MakeImageNS::MakeImage& mimg, _s output_file);
 };
 
  
