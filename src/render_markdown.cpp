@@ -4,12 +4,10 @@
 #include "make_image.h"
 #include <format>
 #include <execution>
-#include <boost/program_options.hpp>
 #include <filesystem>
 
 using ParseMarkdownNS::ParseMarkdown;
 using MakeImageNS::MdSettings;
-using namespace boost::program_options;
 using std::filesystem::exists;
 using filepath = std::filesystem::path;
 namespace RenderMarkdownNS {
@@ -17,50 +15,61 @@ namespace RenderMarkdownNS {
 //-------------------------
 void RenderMarkdown::initialize_options() {
     bool dflag = false;
-//----- OPTIONS -----//
-    this->flags.add_options()
+//------------------------------------- CLI OPTIONS -------------------------------------//
+    this->cli_options.add_options()
     //--- Special -----------//
-        ( "help,h" , bool_switch(&dflag) , "print help" )
-        ( "test,t" , bool_switch(&dflag) , "run tests"  )
+        ( "help,h" , po::bool_switch(&dflag) , "print help" )
+        ( "test,t" , po::bool_switch(&dflag) , "run tests"  )
     //--- Flags/Options -----//
         (
-            "width,W",    
-                value<size_t>( &this->prog_args.img_width )->
-                default_value(DEFAULT_WIDTH),
-            "Canvas width"  )
-        (   "height,H",   
-                value<size_t>( &this->prog_args.img_height )->
-                default_value(DEFAULT_HEIGHT),
-            "Canvas height" )
-        (
-            "config,c",   
-                value<_s>( &this->prog_args.config_file )->default_value(DEFAULT_CONFIG),
-            "Config File (json)" )
-        (
-            "display,d",      
-                bool_switch(&dflag)->
-                notifier( [this](bool n) { if (n) { prog_args.output_files.insert("-"); } } ),
-            "display to terminal" )
-        (
-            "overwrite,R",
-                bool_switch(&dflag)->
-                notifier( [this](bool n) { this->prog_args.overwrite = n; } ),
-            "overwrite output file" )
-    //--- Args --------------//
+            "config,c",
+                po::value<_s>( &this->prog_args.config_file )->default_value(DEFAULT_CONFIG),
+                "Config File"
+        )
         (
             "input-file,i",
-                value<_s>()->
+                po::value<_s>()->
                 default_value("")->
                 notifier( [this](_s f) { this->prog_args.input_files = {f}; } ),
-            "input file" )
+                "input file"
+        )
         (
-            "output-file,o" , 
-                value<_s>()->
+            "output-file,o" ,
+                po::value<_s>()->
                 default_value("")->
-                notifier( [this](_s f) { if (f != "") { this->prog_args.output_files.insert(f); } } ),  
-            "output file" )
+                notifier( [this](_s f) { if (f != "") { this->prog_args.output_files.insert(f); } } ),
+                "output file"
+        )
+        (
+            "overwrite,R",
+                po::bool_switch(&dflag)->
+                notifier( [this](bool n) { this->prog_args.overwrite = n; } ),
+                "overwrite output file"
+        )
+        (
+            "display,d",
+                po::bool_switch(&dflag)->
+                notifier( [this](bool n) { if (n) { prog_args.output_files.insert("-"); } } ),
+                "display to terminal"
+        )
     ;
-//----- END OPTIONS -----//
+//------------------------------------- CLI & CONFIG OPTIONS ----------------------------//
+    this->cli_config_options.add_options()
+        (
+            "width,W",
+                po::value<size_t>( &this->prog_args.img_width )->
+                default_value(DEFAULT_WIDTH),
+                "Canvas width"
+        )
+        (
+            "height,H",
+                po::value<size_t>( &this->prog_args.img_height )->
+                default_value(DEFAULT_HEIGHT),
+                "Canvas height"
+        )
+    ;
+//------------------------------------- CONFIG OPTIONS ----------------------------------//
+//------------------------------------- ARGS --------------------------------------------//
     this->posargs.add("input-file"  , 1);
     this->posargs.add("output-file" , 1);
 }
@@ -85,9 +94,9 @@ void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args
     if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
 }
 void RenderMarkdown::check_files() {
-    std::for_each( std::execution::par_unseq, prog_args.input_files.begin(), prog_args.input_files.end(), 
-        [](_s f) -> void { 
-            exit_error( !exists(f), 2, "input file: '{}' couldn't be found", f); 
+    std::for_each( std::execution::par_unseq, prog_args.input_files.begin(), prog_args.input_files.end(),
+        [](_s f) -> void {
+            exit_error( !exists(f), 2, "input file: '{}' couldn't be found", f);
         }
     );
     exit_error(prog_args.output_files.size() <= 0, "no output file provided", 2);
@@ -101,7 +110,7 @@ void RenderMarkdown::check_files() {
 }
 void RenderMarkdown::help_exit(int exit_code) {
     std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
-    std::cout << this->flags;
+    std::cout << this->cli_options;
     std::cout << std::format( "Errors:\n{}" , ERROR_CODES );
     exit(exit_code);
 }
@@ -116,16 +125,13 @@ void RenderMarkdown::handle_args() {
     } else if ( opt_map["test"].as<bool>() ) {
         test_exit();
     }
-    //_s infile = opt_map["input-file"].as<_s>();
-    // _s outfile = prog_args.output_file == "-" ? "-" :
-    //prog_args.input_files = {opt_map["input-file"].as<_s>()};
     check_files();
     return;
 }
 void RenderMarkdown::get_options(int argc, char** argv) {
     try {
         store(
-            command_line_parser(argc, argv).options(this->flags).positional(this->posargs).run(),
+            po::command_line_parser(argc, argv).options(this->cli_options).positional(this->posargs).run(),
             this->opt_map
         );
         notify(opt_map);

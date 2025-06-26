@@ -5,8 +5,8 @@
 #include <Magick++.h>
 
 //----------------------------------------------------- Mine -------------------//
-using TT = ParseMarkdownNS::TokenType;
 using IMG = MakeImageNS::MakeImage;
+using MakeImageNS::TT;
 //----------------------------------------------------- Standard Library -------//
 using std::pair;
 using std::set;
@@ -24,15 +24,6 @@ namespace ParseMarkdownNS {
 //------------------------------- VARS -----------------------------------------//
 //------------------------------------------------------------------------------//
 // TextData - font size, family, fg, bg, text wrap
-const std::map< const TT, const MakeImageNS::TextData > ParseMarkdown::text_map = {
-    { TT::CODE,   MakeImageNS::TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),    false ) },
-    { TT::H1,     MakeImageNS::TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H2,     MakeImageNS::TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H3,     MakeImageNS::TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H4,     MakeImageNS::TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::H5,     MakeImageNS::TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) },
-    { TT::INLINE, MakeImageNS::TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, 
-};
 const regex ParseMarkdown::block_regex = regex(
     R"((```[\n]?(?<CODE>.*?)[\n]?```))"
     R"(|(^|\n)(?<HEADER>[#]{1,5})[ ](?<CONTENT>.*?)(\n|$))"
@@ -112,7 +103,7 @@ void ParseMarkdown::create_image(IMG& mimg) {
 
 /* ------------- BLOCK -------------- */
 void ParseMarkdown::handle_code(IMG& mimg, const bmatch& res) {
-    mimg.add_text_to_canvas(res["CODE"], text_map.at(TT::CODE));
+    mimg.add_text_to_canvas(res["CODE"], TT::CODE);
 }
 
 void ParseMarkdown::handle_header(IMG& mimg, const bmatch& res) {
@@ -124,7 +115,7 @@ void ParseMarkdown::handle_header(IMG& mimg, const bmatch& res) {
         case 4: htype = TT::H4; break;
         case 5: htype = TT::H5; break;
     }
-    mimg.add_text_to_canvas(clean_text(res["CONTENT"]), text_map.at(htype));
+    mimg.add_text_to_canvas(clean_text(res["CONTENT"]), htype);
 }
 
 void ParseMarkdown::handle_image(IMG& mimg, const bmatch& res) {
@@ -157,6 +148,6 @@ void ParseMarkdown::handle_inline(IMG& mimg, _s s) {
     for (auto& [reg, repl] : inline_regex) {
         out = boost::regex_replace(out, reg, repl);
     }
-    mimg.add_text_to_canvas(out, text_map.at(TT::INLINE));
+    mimg.add_text_to_canvas(out, TT::INLINE);
 }
 }

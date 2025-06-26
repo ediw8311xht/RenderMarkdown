@@ -4,26 +4,16 @@
 #include "macros_defines.h"
 #include <set>
 #include <string>
-#include <map>
 #include <boost/regex.hpp>
 
 namespace ParseMarkdownNS {
 using reg_con = std::array< std::pair<boost::regex, _s>, 5>;
 
-enum class TokenType : int {
-    NONE   =-1,
-    CODE   = 0,
-    H1=1, H2=2, H3=3, H4=4, H5=5,
-    INLINE = 6,
-    IMAGE  = 7,
-    END    = 8,
-};
-
 
 class ParseMarkdown {
     private:
         //----------------------------- FORMATTING ---------//
-        static const std::map< const TokenType, const MakeImageNS::TextData > text_map;
+        // static const std::map< const TokenType, const MakeImageNS::TextData > text_map;
         //----------------------------- Maps ---------------//
         // static const regex full_regex;
         static const boost::regex replace_chars;

@@ -35,3 +35,13 @@
 
 using _s = std::string;
 std::optional<_s> file_as_string(_s file_string);
+#define DEFAULT_TEXT_MAP  \
+    { \
+            { TT::CODE,   TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),    false ) }, \
+            { TT::H1,     TextData( 18, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+            { TT::H2,     TextData( 17, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+            { TT::H3,     TextData( 16, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+            { TT::H4,     TextData( 15, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+            { TT::H5,     TextData( 14, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+            { TT::INLINE, TextData( 12, "Noto-Sans", ColorRGB(0,   0,   0) , Color("transparent"), true  ) }, \
+    }

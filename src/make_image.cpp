@@ -5,8 +5,6 @@
 using namespace MakeImageNS;
 
 namespace Mag = Magick;
-using Magick::TypeMetric;
-using Magick::Blob;
 
 MakeImage::MakeImage(const MdSettings& s) : settings(s)
     // : canvas_size(width, height),
@@ -98,6 +96,9 @@ void MakeImage::reset_image() {
 void MakeImage::add_text_to_canvas(_s text, const TextData& t) {
     Image sub_img = t.wrap ? image_from_data(text, t) : image_from_data_unwrapped(text, t);
     write_image(sub_img);
+}
+void MakeImage::add_text_to_canvas(_s text, TT token) {
+    add_text_to_canvas(text, settings.text_map.at(token));
 }
 
 void MakeImage::add_image_to_canvas(const ImageData& i) {
