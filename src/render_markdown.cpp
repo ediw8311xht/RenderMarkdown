@@ -42,7 +42,7 @@ void RenderMarkdown::initialize_options() {
                 notifier( [this](bool n) { if (n) { prog_args.output_files.insert("-"); } } ),
             "display to terminal" )
         (
-            "overwrite,O",
+            "overwrite,R",
                 bool_switch(&dflag)->
                 notifier( [this](bool n) { this->prog_args.overwrite = n; } ),
             "overwrite output file" )

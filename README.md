@@ -13,10 +13,11 @@ RenderMarkdown [options] [input-file] [output-file]
 Options:
   -h [ --help ]               print help
   -t [ --test ]               run tests
-  -W [ --width ] arg (=800)   image width
-  -H [ --height ] arg (=1000) image height
+  -W [ --width ] arg (=800)   Canvas width
+  -H [ --height ] arg (=1000) Canvas height
+  -c [ --config ] arg         Config File (json)
   -d [ --display ]            display to terminal
-  -O [ --overwrite ]          overwrite output file
+  -R [ --overwrite ]          overwrite output file
   -i [ --input-file ] arg     input file
   -o [ --output-file ] arg    output file
 Errors:
