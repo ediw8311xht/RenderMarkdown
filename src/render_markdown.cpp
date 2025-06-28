@@ -1,16 +1,82 @@
 #include "render_markdown.h"
 #include "parse_markdown.h"
 #include "test.h"
-#include "make_image.h"
 #include <format>
 #include <execution>
 #include <filesystem>
 
 using ParseMarkdownNS::ParseMarkdown;
-using MakeImageNS::MdSettings;
 using std::filesystem::exists;
 using filepath = std::filesystem::path;
+
 namespace RenderMarkdownNS {
+
+RenderMarkdown::RenderMarkdown() {
+    initialize_options();
+}
+
+void exit_error(bool b, _s s, int exit_code) {
+    if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
+}
+template <typename... Args>
+void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
+    if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
+}
+
+void RenderMarkdown::help_exit(int exit_code, bool config) {
+    if (config) {
+        std::cout << this->p_config;
+    } else {
+        std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
+        std::cout << this->p_cli;
+        std::cout << std::format( "Errors:\n{}" , ERROR_CODES );
+    }
+    exit(exit_code);
+}
+void RenderMarkdown::test_exit() {
+    TestRenderMarkdownNS::TestRenderMarkdown test;
+    test.run_all();
+    exit(0);
+}
+void RenderMarkdown::run_program() {
+    ParseMarkdown parse_m(prog_args.input_files);
+    // MdSettings settings(prog_args.img_width, prog_args.img_height);
+    MakeImageNS::MakeImage img(settings);
+    parse_m.create_image(img);
+    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
+        [&img, &parse_m](_s ofile) -> void {
+            parse_m.save_image(img, ofile);
+        }
+    );
+}
+
+void RenderMarkdown::check_files() {
+    std::for_each( std::execution::par_unseq, prog_args.input_files.begin(), prog_args.input_files.end(),
+        [](_s f) -> void {
+            exit_error( !exists(f), 2, "input file: '{}' couldn't be found", f);
+        }
+    );
+    exit_error(prog_args.output_files.size() <= 0, "no output file provided", 2);
+    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
+        [this](_s f) -> void {
+            if (f != "-" && !this->prog_args.overwrite) {
+                exit_error( exists(f), 2, "output file: '{}' already exists (use --overwrite to overwrite file)", f);
+            }
+        }
+    );
+}
+
+void RenderMarkdown::handle_args() {
+    if ( opt_map["help"].as<bool>() ) {
+        help_exit();
+    } else if (opt_map["help-config"].as<bool>() ) {
+        help_exit(0, true);
+    } else if ( opt_map["test"].as<bool>() ) {
+        test_exit();
+    }
+    check_files();
+    return;
+}
 
 //-------------------------
 void RenderMarkdown::initialize_options() {
@@ -19,6 +85,7 @@ void RenderMarkdown::initialize_options() {
     this->cli_options.add_options()
     //--- Special -----------//
         ( "help,h" , po::bool_switch(&dflag) , "print help" )
+        ( "help-config,H", po::bool_switch(&dflag) , "print configuration file help" )
         ( "test,t" , po::bool_switch(&dflag) , "run tests"  )
     //--- Flags/Options -----//
         (
@@ -57,81 +124,38 @@ void RenderMarkdown::initialize_options() {
     this->cli_config_options.add_options()
         (
             "width,W",
-                po::value<size_t>( &this->prog_args.img_width )->
+                po::value<size_t>( &this->settings.width )->
                 default_value(DEFAULT_WIDTH),
                 "Canvas width"
         )
         (
             "height,H",
-                po::value<size_t>( &this->prog_args.img_height )->
+                po::value<size_t>( &this->settings.height )->
                 default_value(DEFAULT_HEIGHT),
                 "Canvas height"
         )
+    ;
+    this->config_options.add_options()
     ;
 //------------------------------------- CONFIG OPTIONS ----------------------------------//
 //------------------------------------- ARGS --------------------------------------------//
     this->posargs.add("input-file"  , 1);
     this->posargs.add("output-file" , 1);
+    this->p_cli.add(this->cli_options).add(cli_config_options);
+    this->p_config.add(this->cli_config_options).add(config_options);
 }
 
-void RenderMarkdown::run_program() {
-    ParseMarkdown parse_m(prog_args.input_files);
-    MdSettings settings(prog_args.img_width, prog_args.img_height);
-    MakeImageNS::MakeImage img(settings);
-    parse_m.create_image(img);
-    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
-        [&img, &parse_m](_s ofile) -> void {
-            parse_m.save_image(img, ofile);
-        }
-    );
-}
-
-void exit_error(bool b, _s s, int exit_code) {
-    if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
-}
-template <typename... Args>
-void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
-    if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
-}
-void RenderMarkdown::check_files() {
-    std::for_each( std::execution::par_unseq, prog_args.input_files.begin(), prog_args.input_files.end(),
-        [](_s f) -> void {
-            exit_error( !exists(f), 2, "input file: '{}' couldn't be found", f);
-        }
-    );
-    exit_error(prog_args.output_files.size() <= 0, "no output file provided", 2);
-    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
-        [this](_s f) -> void {
-            if (f != "-" && !this->prog_args.overwrite) {
-                exit_error( exists(f), 2, "output file: '{}' already exists (use --overwrite to overwrite file)", f);
-            }
-        }
-    );
-}
-void RenderMarkdown::help_exit(int exit_code) {
-    std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
-    std::cout << this->cli_options;
-    std::cout << std::format( "Errors:\n{}" , ERROR_CODES );
-    exit(exit_code);
-}
-void RenderMarkdown::test_exit() {
-    TestRenderMarkdownNS::TestRenderMarkdown test;
-    test.run_all();
-    exit(0);
-}
-void RenderMarkdown::handle_args() {
-    if ( opt_map["help"].as<bool>() ) {
-        help_exit();
-    } else if ( opt_map["test"].as<bool>() ) {
-        test_exit();
+void RenderMarkdown::get_config() {
+    try {
+        store( po::parse_config_file(this->prog_args.config_file.c_str(), p_config), this->opt_map);
+        notify(opt_map);
+    } catch (boost::program_options::error& e) {
     }
-    check_files();
-    return;
 }
 void RenderMarkdown::get_options(int argc, char** argv) {
     try {
         store(
-            po::command_line_parser(argc, argv).options(this->cli_options).positional(this->posargs).run(),
+            po::command_line_parser(argc, argv).options(this->p_cli).positional(this->posargs).run(),
             this->opt_map
         );
         notify(opt_map);
@@ -140,8 +164,5 @@ void RenderMarkdown::get_options(int argc, char** argv) {
         exit_error(true, 1, "{}: {}", "Handling Options/Arguments", e.what());
     }
 }
-RenderMarkdown::RenderMarkdown() {
-    initialize_options();
-}
 
-}
+} //------------- END NAMESPACE -------------//
