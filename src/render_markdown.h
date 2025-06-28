@@ -2,10 +2,18 @@
 #include "macros_defines.h"
 #include "make_image.h"
 #include <boost/program_options.hpp>
+#include <filesystem>
+#include <boost/filesystem.hpp>
+#include <cstdlib>
 #include <set>
+
+#define HOME std::string(getenv("HOME"))
+#define HOME_PATH(f) HOME + "/" + f
+#define DEFAULT_CONFIG HOME_PATH(".config/render_markdown/config.ini")
 
 namespace RenderMarkdownNS {
 namespace po = boost::program_options; 
+
 
 using MakeImageNS::MdSettings;
 typedef struct ProgArgs {

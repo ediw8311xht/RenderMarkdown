@@ -7,9 +7,8 @@
 // Defaults
 #define DEFAULT_WIDTH           800
 #define DEFAULT_HEIGHT          1000
-#define DEFAULT_CANVAS_BG       "white";
-#define DEFAULT_PADDING         5;
-#define DEFAULT_CONFIG          "/home/maceurt/.config/render_markdown/config.ini"
+#define DEFAULT_CANVAS_BG       "white"
+#define DEFAULT_PADDING         5
 #define DEFAULT_LINE_SPACING    1
 
 #define ERROR_CODES \
