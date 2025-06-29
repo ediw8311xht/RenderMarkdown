@@ -138,7 +138,7 @@ void RenderMarkdown::initialize_options() {
     this->posargs.add("input-file"  , 1);
     this->posargs.add("output-file" , 1);
     this->p_cli.add(this->cli_options).add(cli_config_options);
-    this->p_config.add(this->cli_config_options).add(config_options);
+    this->p_config.add(this->config_options).add(cli_config_options);
 }
 
 void RenderMarkdown::get_config() {

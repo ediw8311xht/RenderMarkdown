@@ -52,10 +52,10 @@ struct MdSettings {
     Color canvas_bg   = DEFAULT_CANVAS_BG;
     ssize_t padding   = DEFAULT_PADDING;
     int line_spacing  = DEFAULT_LINE_SPACING;
-    size_t sub_width  = DEFAULT_WIDTH - DEFAULT_PADDING;
+    size_t sub_width  = DEFAULT_WIDTH - (DEFAULT_PADDING*2);
     const std::map< const TT, const TextData > text_map = DEFAULT_TEXT_MAP;
     MdSettings() = default;
-    MdSettings(size_t width, size_t height) : width(width), height(height), sub_width(width-padding) {}
+    MdSettings(size_t width, size_t height) : width(width), height(height), sub_width(width-(padding*2)) {}
 };
 
 /* |---------------------------------------------------------|

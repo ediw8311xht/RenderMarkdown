@@ -6,8 +6,8 @@
 
 using _s = std::string;
 // Defaults
-const size_t   DEFAULT_WIDTH        = 800;
-const size_t   DEFAULT_HEIGHT       = 1000;
+const size_t   DEFAULT_WIDTH        = 900;
+const size_t   DEFAULT_HEIGHT       = 900;
 const _s       DEFAULT_CANVAS_BG    = "white";
 const ssize_t  DEFAULT_PADDING      = 5;
 const size_t   DEFAULT_LINE_SPACING = 1;

@@ -45,8 +45,8 @@ class RenderMarkdown {
 
     public:
         po::options_description            cli_options          = po::options_description("Basic Options");
-        po::options_description            cli_config_options   = po::options_description("More Options");
-        po::options_description            config_options       = po::options_description("Config File Options");
+        po::options_description            cli_config_options   = po::options_description("Other Options");
+        po::options_description            config_options       = po::options_description("Config Specific Options");
         po::positional_options_description posargs;
         // Parent configs housing options
         po::options_description            p_cli              = po::options_description("Allowed Options");
