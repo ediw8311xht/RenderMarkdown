@@ -27,3 +27,5 @@ PRESENTATION/
 *.docx
 to_do.md
 pers_test.md
+!images/example*.jpeg
+!images/example*.jpg
