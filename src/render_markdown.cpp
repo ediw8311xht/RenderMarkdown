@@ -142,10 +142,15 @@ void RenderMarkdown::initialize_options() {
 }
 
 void RenderMarkdown::get_config() {
+    if (!exists(prog_args.config_file)) {
+        std::cout << format("Config file: {}, couldn't be found.\n", prog_args.config_file);
+        return;
+    }
     try {
         store( po::parse_config_file(this->prog_args.config_file.c_str(), p_config), this->opt_map);
         notify(opt_map);
     } catch (boost::program_options::error& e) {
+        exit_error(true, 4, "{}: {}", "Parsing Config", e.what());
     }
 }
 void RenderMarkdown::get_options(int argc, char** argv) {

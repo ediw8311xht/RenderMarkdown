@@ -3,24 +3,26 @@
 #include "make_image.h"
 #include <boost/program_options.hpp>
 #include <cstdlib>
-#include <set>
 
 #define HOME std::string(getenv("HOME"))
 #define HOME_PATH(f) HOME + "/" + f
 #define DEFAULT_CONFIG HOME_PATH(".config/render_markdown/config.ini")
 
 namespace {
-    const _s ERROR_CODES = R"(ERRORS:
+    const _s ERROR_CODES = R"(
+ERRORS:
     1 - Argument
     2 - File
-    3 - Write)";
+    3 - Write
+    4 - Config
+)";
     namespace po = boost::program_options; 
+    using MakeImageNS::MdSettings;
 }
 
 namespace RenderMarkdownNS {
 
 
-using MakeImageNS::MdSettings;
 typedef struct ProgArgs {
     _s input_file  = "";
     _s output_file = "";
