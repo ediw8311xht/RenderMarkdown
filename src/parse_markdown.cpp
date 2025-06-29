@@ -4,19 +4,21 @@
 #include <format>
 #include <Magick++.h>
 
-//----------------------------------------------------- Mine -------------------//
-using IMG = MakeImageNS::MakeImage;
-using MakeImageNS::TT;
-//----------------------------------------------------- Standard Library -------//
-using std::pair;
-using std::set;
-using std::format;
-//----------------------------------------------------- Boost ------------------//
-using boost::regex;
-using bmatch = boost::match_results<_s::const_iterator>;
-//----------------------------------------------------- Magick++ ---------------//
-using Magick::ColorRGB;
-using Magick::Color;
+namespace {
+    //----------------------------------------------------- Mine -------------------//
+    using IMG = MakeImageNS::MakeImage;
+    using MakeImageNS::TT;
+    //----------------------------------------------------- Standard Library -------//
+    using std::pair;
+    using std::set;
+    using std::format;
+    //----------------------------------------------------- Boost ------------------//
+    using boost::regex;
+    using bmatch = boost::match_results<_s::const_iterator>;
+    //----------------------------------------------------- Magick++ ---------------//
+    using Magick::ColorRGB;
+    using Magick::Color;
+}
 
 namespace ParseMarkdownNS {
 
@@ -32,10 +34,10 @@ const regex ParseMarkdown::block_regex = regex(
 );
 const reg_con ParseMarkdown::inline_regex = { 
     pair<regex, _s>{ regex( R"(`(.+?)`)" ),                                 // ------- inline code
-        "<span " STYLE_INLINE_CODE " > \\1 </span>"
+        "<span " + STYLE_INLINE_CODE + " > \\1 </span>"
     },
     pair<regex, _s>{ regex( R"(\[(.+?)\]\((.+?)\))" ),                      // ------- inline link
-        "<b>\\1</b>: <span " STYLE_INLINE_LINK " >\\2</span>"
+        "<b>\\1</b>: <span " + STYLE_INLINE_LINK + " >\\2</span>"
     },
     pair<regex, _s>{ regex( R"(\*{3}(.+?)\*{3})" ), "<b><i>\\1</i></b>" } , // ------- bold & italic
     pair<regex, _s>{ regex( R"(\*{2}(.+?)\*{2})" ), "<b>\\1</b>"        } , // ------- bold

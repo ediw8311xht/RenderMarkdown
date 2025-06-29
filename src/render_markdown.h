@@ -2,8 +2,6 @@
 #include "macros_defines.h"
 #include "make_image.h"
 #include <boost/program_options.hpp>
-#include <filesystem>
-#include <boost/filesystem.hpp>
 #include <cstdlib>
 #include <set>
 
@@ -11,14 +9,21 @@
 #define HOME_PATH(f) HOME + "/" + f
 #define DEFAULT_CONFIG HOME_PATH(".config/render_markdown/config.ini")
 
+namespace {
+    const _s ERROR_CODES = R"(ERRORS:
+    1 - Argument
+    2 - File
+    3 - Write)";
+    namespace po = boost::program_options; 
+}
+
 namespace RenderMarkdownNS {
-namespace po = boost::program_options; 
 
 
 using MakeImageNS::MdSettings;
 typedef struct ProgArgs {
-    std::set<_s> input_files  = {};
-    std::set<_s> output_files = {}; // For terminal output use "-"
+    _s input_file  = "";
+    _s output_file = "";
     bool         overwrite    = false;
     _s           config_file  = DEFAULT_CONFIG;
     ProgArgs() {}

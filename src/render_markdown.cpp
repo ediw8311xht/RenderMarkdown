@@ -3,11 +3,19 @@
 #include "test.h"
 #include <format>
 #include <execution>
+#include <numeric>
+#include <vector>
+#include <filesystem>
+#include <boost/filesystem.hpp>
 
 using ParseMarkdownNS::ParseMarkdown;
-using std::filesystem::exists;
-using filepath = std::filesystem::path;
 
+// constexpr std::vector<_s> errors = {"Argument", "File", "Write"};
+// const _s ERROR_CODES = std::accumulate(errors.begin(), errors.end(), 0, [](_s a, int x) -> _s {return "";} );
+namespace {
+    using std::filesystem::exists;
+    using filepath = std::filesystem::path;
+}
 namespace RenderMarkdownNS {
 
 RenderMarkdown::RenderMarkdown() {
@@ -28,7 +36,7 @@ void RenderMarkdown::help_exit(int exit_code, bool config) {
     } else {
         std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
         std::cout << this->p_cli;
-        std::cout << std::format( "Errors:\n{}" , ERROR_CODES );
+        std::cout << ERROR_CODES << std::endl;;
     }
     exit(exit_code);
 }
@@ -38,30 +46,19 @@ void RenderMarkdown::test_exit() {
     exit(0);
 }
 void RenderMarkdown::run_program() {
-    ParseMarkdown parse_m(prog_args.input_files);
+    ParseMarkdown parse_m(prog_args.input_file);
     // MdSettings settings(prog_args.img_width, prog_args.img_height);
     MakeImageNS::MakeImage img(settings);
     parse_m.create_image(img);
-    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
-        [&img, &parse_m](_s ofile) -> void {
-            parse_m.save_image(img, ofile);
-        }
-    );
+    parse_m.save_image(img, prog_args.output_file);
 }
 
 void RenderMarkdown::check_files() {
-    std::for_each( std::execution::par_unseq, prog_args.input_files.begin(), prog_args.input_files.end(),
-        [](_s f) -> void {
-            exit_error( !exists(f), 2, "input file: '{}' couldn't be found", f);
-        }
-    );
-    exit_error(prog_args.output_files.size() <= 0, "no output file provided", 2);
-    std::for_each( std::execution::par_unseq, prog_args.output_files.begin(), prog_args.output_files.end(),
-        [this](_s f) -> void {
-            if (f != "-" && !this->prog_args.overwrite) {
-                exit_error( exists(f), 2, "output file: '{}' already exists (use --overwrite to overwrite file)", f);
-            }
-        }
+    exit_error( !exists(prog_args.input_file), 2, "input file: '{}' couldn't be found", prog_args.input_file);
+    exit_error( prog_args.output_file == "", "no output file provided", 2);
+    exit_error( 
+        prog_args.output_file != "-" && !this->prog_args.overwrite && exists(prog_args.output_file),
+        2, "output file: '{}' already exists (use --overwrite to overwrite file)", prog_args.output_file
     );
 }
 
@@ -96,14 +93,14 @@ void RenderMarkdown::initialize_options() {
             "input-file,i",
                 po::value<_s>()->
                 default_value("")->
-                notifier( [this](_s f) { this->prog_args.input_files = {f}; } ),
+                notifier( [this](_s f) { this->prog_args.input_file = f; } ),
                 "input file"
         )
         (
             "output-file,o" ,
                 po::value<_s>()->
                 default_value("")->
-                notifier( [this](_s f) { if (f != "") { this->prog_args.output_files.insert(f); } } ),
+                notifier( [this](_s f) { if (f != "") { this->prog_args.output_file = f; } } ),
                 "output file"
         )
         (
@@ -115,7 +112,7 @@ void RenderMarkdown::initialize_options() {
         (
             "display,d",
                 po::bool_switch(&dflag)->
-                notifier( [this](bool n) { if (n) { prog_args.output_files.insert("-"); } } ),
+                notifier( [this](bool n) { if (n) { prog_args.output_file = "-"; } } ),
                 "display to terminal"
         )
     ;

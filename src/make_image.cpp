@@ -2,8 +2,18 @@
 #include "make_image.h"
 #include <cmath> // for std::ceil
 
-using namespace MakeImageNS;
-
+#define P(A) std::cout << A
+namespace {
+    // Helpful macro
+    const int BEGIN_DATA_SIZE = 13;
+    // Begins each chunk
+    const _s CHUNK_SEP = "\e_G";
+    // Ends each chunk
+    const _s CHUNK_END = "\e\\";
+    // a=T automatically sets position and size of image to display f=100 is for PNG
+    const _s DISPLAY_SETTING = "a=T,f=100,";
+}
+namespace MakeImageNS {
 namespace Mag = Magick;
 
 MakeImage::MakeImage(const MdSettings& s) : settings(s)
@@ -162,4 +172,4 @@ void MakeImage::display_image_kitty() {
     _s s = b.base64(); // Needs to be base64 encoded
     send_data(s);
 }
-
+}
