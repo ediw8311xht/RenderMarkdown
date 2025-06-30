@@ -9,13 +9,6 @@
 #define DEFAULT_CONFIG HOME_PATH(".config/render_markdown/config.ini")
 
 namespace {
-    const _s ERROR_CODES = R"(
-ERRORS:
-    1 - Argument
-    2 - File
-    3 - Write
-    4 - Config
-)";
     namespace po = boost::program_options; 
     using MakeImageNS::MdSettings;
 }
@@ -55,7 +48,7 @@ class RenderMarkdown {
         void get_options(int argc, char** argv);
         void get_config();
         void help_exit(int exit_code=0, bool config=false);
-        void run_program();
+        void run_program(int argc, char** argv);
         RenderMarkdown();
         RenderMarkdown(ProgArgs prog_args) : prog_args(prog_args) {};
 };

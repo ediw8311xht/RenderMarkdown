@@ -1,5 +1,7 @@
 #include "parse_markdown.h"
 #include "macros_defines.h"
+#include <fstream>
+#include <sstream> // For stringstream
 #include <iostream>
 #include <format>
 #include <Magick++.h>
@@ -57,13 +59,16 @@ ParseMarkdown::ParseMarkdown(_s file)       : files( set<_s>({file}) )  { read_i
 
 void ParseMarkdown::_read_in_files(set<_s>& f, set<_s>::iterator i, set<_s>::iterator e) {
     if (i == e) { return; }
-    std::optional<_s> o = file_as_string(*i);
-    // this->str_files.push_back(o);
-    if (!o.has_value()) {
+    std::ifstream file(*i);
+    if ( file.is_open() ) {
+        std::stringstream s;
+        s << file.rdbuf();
+        file.close();
+        this->total_str += s.str();
+    } else {
         std::cerr << format("{}: file '{}' couldn't be opened.", "_read_in_files", (*i)) << std::endl;
-        exit(2);
+        exit(3);
     }
-    else { this->total_str += o.value(); }
     return _read_in_files(f, ++i, e);
 }
 

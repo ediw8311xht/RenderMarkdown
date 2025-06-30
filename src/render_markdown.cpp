@@ -3,19 +3,20 @@
 #include "test.h"
 #include <format>
 #include <execution>
+#include <iostream>
 #include <numeric>
 #include <vector>
+#include <array>
 #include <filesystem>
 #include <boost/filesystem.hpp>
+#include <boost/variant2.hpp>
 
+
+// using boost::variant2::variant;
+using std::filesystem::exists;
+using filepath = std::filesystem::path;
+using color_variant = boost::variant2::variant<_s, std::array<int, 3>>;
 using ParseMarkdownNS::ParseMarkdown;
-
-// constexpr std::vector<_s> errors = {"Argument", "File", "Write"};
-// const _s ERROR_CODES = std::accumulate(errors.begin(), errors.end(), 0, [](_s a, int x) -> _s {return "";} );
-namespace {
-    using std::filesystem::exists;
-    using filepath = std::filesystem::path;
-}
 namespace RenderMarkdownNS {
 
 RenderMarkdown::RenderMarkdown() {
@@ -36,7 +37,13 @@ void RenderMarkdown::help_exit(int exit_code, bool config) {
     } else {
         std::cout << std::format( "RenderMarkdown [{}] [{}] [{}]\n", "options", "input-file", "output-file" );
         std::cout << this->p_cli;
-        std::cout << ERROR_CODES << std::endl;;
+        std::cout << R"(
+ERRORS:
+    1 - Argument
+    2 - File
+    3 - Write
+    4 - Config
+)";
     }
     exit(exit_code);
 }
@@ -45,9 +52,12 @@ void RenderMarkdown::test_exit() {
     test.run_all();
     exit(0);
 }
-void RenderMarkdown::run_program() {
-    ParseMarkdown parse_m(prog_args.input_file);
+void RenderMarkdown::run_program(int argc, char** argv) {
+    MakeImageNS::MakeImage::setup_magick(*argv);
     // MdSettings settings(prog_args.img_width, prog_args.img_height);
+    get_options(argc, argv);
+    get_config();
+    ParseMarkdown parse_m(prog_args.input_file);
     MakeImageNS::MakeImage img(settings);
     parse_m.create_image(img);
     parse_m.save_image(img, prog_args.output_file);
@@ -80,9 +90,9 @@ void RenderMarkdown::initialize_options() {
 //------------------------------------- CLI OPTIONS -------------------------------------//
     this->cli_options.add_options()
     //--- Special -----------//
-        ( "help,h" , po::bool_switch(&dflag) , "print help" )
-        ( "help-config,H", po::bool_switch(&dflag) , "print configuration file help" )
-        ( "test,t" , po::bool_switch(&dflag) , "run tests"  )
+        ( "help,h"        , po::bool_switch(&dflag) , "print help"                    )
+        ( "help-config,H" , po::bool_switch(&dflag) , "print configuration file help" )
+        ( "test,t"        , po::bool_switch(&dflag) , "run tests"                     )
     //--- Flags/Options -----//
         (
             "config,c",
@@ -91,16 +101,12 @@ void RenderMarkdown::initialize_options() {
         )
         (
             "input-file,i",
-                po::value<_s>()->
-                default_value("")->
-                notifier( [this](_s f) { this->prog_args.input_file = f; } ),
+                po::value<_s>(&this->prog_args.input_file),
                 "input file"
         )
         (
             "output-file,o" ,
-                po::value<_s>()->
-                default_value("")->
-                notifier( [this](_s f) { if (f != "") { this->prog_args.output_file = f; } } ),
+                po::value<_s>(&this->prog_args.output_file),
                 "output file"
         )
         (
@@ -120,20 +126,27 @@ void RenderMarkdown::initialize_options() {
     this->cli_config_options.add_options()
         (
             "width,W",
-                po::value<size_t>( &this->settings.width )->
-                default_value(DEFAULT_WIDTH),
+                po::value<size_t>( &this->settings.width ),
                 "Canvas width"
         )
         (
             "height,H",
-                po::value<size_t>( &this->settings.height )->
-                default_value(DEFAULT_HEIGHT),
+                po::value<size_t>( &this->settings.height ),
                 "Canvas height"
         )
     ;
-    this->config_options.add_options()
-    ;
 //------------------------------------- CONFIG OPTIONS ----------------------------------//
+    this->config_options.add_options()
+        // (
+        //     "canvasbg",
+        //     po::value<color_variant>()->
+        //     // default_value(DEFAULT_CANVAS_BG)->
+        //     notifier( [this](color_variant c) {
+        //     }),
+        //     // -> default_value(this->settings.canvas_bg),
+        //     "Canvas BG"
+        // )
+    ;
 //------------------------------------- ARGS --------------------------------------------//
     this->posargs.add("input-file"  , 1);
     this->posargs.add("output-file" , 1);

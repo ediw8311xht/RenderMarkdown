@@ -2,16 +2,12 @@
 #include "macros_defines.h"
 #include <string>
 #include <map>
-// #include <vector>
-// #include <tuple>
 #include <Magick++.h>
 
 namespace MakeImageNS {
 
 typedef struct TextData TextData;
 typedef struct MdSettings MdSettings;
-using Magick::TypeMetric;
-using Magick::Blob;
 using Magick::Color;
 using Magick::ColorRGB;
 using Magick::Image;
@@ -52,10 +48,12 @@ struct MdSettings {
     Color canvas_bg   = DEFAULT_CANVAS_BG;
     ssize_t padding   = DEFAULT_PADDING;
     int line_spacing  = DEFAULT_LINE_SPACING;
-    size_t sub_width  = DEFAULT_WIDTH - (DEFAULT_PADDING*2);
+    size_t sub_width() {
+        return width - (padding * 2);
+    }
     const std::map< const TT, const TextData > text_map = DEFAULT_TEXT_MAP;
     MdSettings() = default;
-    MdSettings(size_t width, size_t height) : width(width), height(height), sub_width(width-(padding*2)) {}
+    // MdSettings(size_t width, size_t height, ssize_t padding=DEFAULT_PADDING) : width(width), height(height), sub_width(width-(padding*2)) {}
 };
 
 /* |---------------------------------------------------------|
@@ -71,7 +69,7 @@ class MakeImage {
         Image    canvas;
         Geometry canvas_size;
         ssize_t  offset_y;
-        const MdSettings settings;
+        MdSettings settings;
 
         Image image_from_data(_s text, const TextData& t);
         Image image_from_data_unwrapped(_s text, const TextData& t);
@@ -81,7 +79,7 @@ class MakeImage {
         static void send_data(const _s& s, _stype i = 0, _stype size=0, bool start=true);
         static void setup_magick(char* arg);
         static double get_height(Image& img, const _s& text);
-        MakeImage(const MdSettings& s);
+        MakeImage(MdSettings& s);
         /* Not using const for Image, because it causes issues.
            Maybe reason why have to create new image since I am passing by
            reference And FontMetrics is modifying the Image in some way */

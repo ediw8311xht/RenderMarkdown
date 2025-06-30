@@ -48,7 +48,8 @@ void TestRenderMarkdown::test_together() {
 
 void TestRenderMarkdown::test_display() {
     ParseMarkdownNS::ParseMarkdown a("TEST_FILES/test_together.md" );
-    MakeImageNS::MdSettings settings(900, 500);
+    MakeImageNS::MdSettings settings;
+    settings.width = 900; settings.height = 500;
     MakeImageNS::MakeImage img( settings);
     a.create_image(img);
     a.save_image(img, "-");

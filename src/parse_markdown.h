@@ -21,7 +21,7 @@ class ParseMarkdown {
         static const reg_con inline_regex;
         //----------------------------- Vars ---------------//
         std::set<_s> files = {};               // Names of markdown files
-        std::set<std::optional<_s>> str_files; // Lines of files
+        // std::set<std::optional<_s>> str_files; // Lines of files
         _s total_str;                          // Concenated contents of all files
         //----------------------------- Functions ----------//
         /* Internal function for read_in_files()

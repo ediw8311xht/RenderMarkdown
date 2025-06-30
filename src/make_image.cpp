@@ -1,22 +1,25 @@
 #include "macros_defines.h"
 #include "make_image.h"
+#include <iostream>
 #include <cmath> // for std::ceil
 
 #define P(A) std::cout << A
 namespace {
     // Helpful macro
-    const int BEGIN_DATA_SIZE = 13;
+    const int CHUNK_SIZE = 4096;
     // Begins each chunk
     const _s CHUNK_SEP = "\e_G";
     // Ends each chunk
     const _s CHUNK_END = "\e\\";
     // a=T automatically sets position and size of image to display f=100 is for PNG
     const _s DISPLAY_SETTING = "a=T,f=100,";
+    using Magick::TypeMetric;
+    using Magick::Blob;
 }
 namespace MakeImageNS {
 namespace Mag = Magick;
 
-MakeImage::MakeImage(const MdSettings& s) : settings(s)
+MakeImage::MakeImage(MdSettings& s) : settings(s)
     // : canvas_size(width, height),
     //   subimg_geo(width-(padding*2), 0),
     //   canvas_bg(canvas_bg),
@@ -67,7 +70,7 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
     size_t text_height = std::ceil(get_height(check_image, text));
     // Resizing & drawing text on resized image causes issues. So making new
     // image.
-    Image new_img({settings.sub_width, text_height}, t.bg);
+    Image new_img({settings.sub_width(), text_height}, t.bg);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
     new_img.fillColor(t.fg);
@@ -81,7 +84,7 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
    automatically adjust to fit text. Note: Ensure text wrapping the width is
    set to the size of the canvas (minus padding on both side) */
 Image MakeImage::image_from_data(_s text, const TextData& t ) {
-    Image new_img(Geometry(settings.width, 0), t.bg);
+    Image new_img(Geometry(settings.sub_width(), 0), t.bg);
     new_img.resolutionUnits(Mag::PixelsPerInchResolution);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
@@ -128,7 +131,7 @@ void MakeImage::add_image_to_canvas(const ImageData& i) {
         sub_img.resize(i.size);
     }
     else {
-        sub_img.resize(Geometry(settings.sub_width, 0));
+        sub_img.resize(Geometry(settings.sub_width(), 0));
     }
     write_image(sub_img);
 }
@@ -141,7 +144,7 @@ void MakeImage::add_line_to_canvas() {
     canvas.strokeColor("black");
     canvas.fillColor("black");
     canvas.strokeWidth(DRAWN_LINE_SIZE);
-    canvas.draw(Magick::DrawableLine(settings.padding, offset_y + DRAWN_LINE_MARGIN, settings.sub_width, offset_y));
+    canvas.draw(Magick::DrawableLine(settings.padding, offset_y + DRAWN_LINE_MARGIN, settings.sub_width(), offset_y));
     offset_y += DRAWN_LINE_SIZE + DRAWN_LINE_MARGIN + settings.line_spacing;
 }
 
@@ -156,9 +159,9 @@ void MakeImage::send_data(const _s& s, _stype i, _stype size, bool start) {
         size = s.length();
     }
     // If not full chunk no m=1
-    _stype ni = i+4096;
+    _stype ni = i + CHUNK_SIZE;
     P( (ni <= size ? "m=1;" : ";") );
-    P(s.substr(i, 4096));
+    P(s.substr(i, CHUNK_SIZE));
     P(CHUNK_END);
     return ni < size ? send_data(s, ni, size, false) : ( P("\n") , void() );
 }

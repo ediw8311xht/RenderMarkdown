@@ -1,25 +1,24 @@
 #pragma once
 
 #include <string>
-#include <iostream>
-#include <optional>
 
 using _s = std::string;
 // Defaults
-const size_t   DEFAULT_WIDTH        = 900;
-const size_t   DEFAULT_HEIGHT       = 900;
-const _s       DEFAULT_CANVAS_BG    = "white";
-const ssize_t  DEFAULT_PADDING      = 5;
-const size_t   DEFAULT_LINE_SPACING = 1;
-const double DRAWN_LINE_SIZE      = 4;
-const size_t DRAWN_LINE_MARGIN    = 2;
-const _s STYLE_INLINE_CODE = "font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000'";
-const _s STYLE_INLINE_LINK = "font_family='Noto-Sans' fgcolor='#0044FF'";
+const size_t  DEFAULT_WIDTH        = 900;
+const size_t  DEFAULT_HEIGHT       = 900;
+const _s      DEFAULT_CANVAS_BG    = "white";
+const ssize_t DEFAULT_PADDING      = 5;
+const size_t  DEFAULT_LINE_SPACING = 1;
+const double  DRAWN_LINE_SIZE      = 4;
+const size_t  DRAWN_LINE_MARGIN    = 2;
+const _s      STYLE_INLINE_CODE    = "font_family='Noto-Mono' fgcolor='#00FF00' bgcolor='#000000'";
+const _s      STYLE_INLINE_LINK    = "font_family='Noto-Sans' fgcolor='#0044FF'";
 
 
 // #define DEFAULT_CONFIG    getenv("XDG_CONFIG_HOME") ? "${XDG_CONFIG_HOME:-${HOME}/.config}/render_markdown/config.json"
 
-std::optional<_s> file_as_string(_s file_string);
+// #include <optional>
+// std::optional<_s> file_as_string(_s file_string);
 #define DEFAULT_TEXT_MAP  \
     { \
             { TT::CODE,   TextData( 12, "Noto-Mono", ColorRGB(0,   255, 0) , ColorRGB(0, 0, 0),    false ) }, \
