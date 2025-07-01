@@ -18,6 +18,7 @@ namespace {
 }
 namespace MakeImageNS {
 namespace Mag = Magick;
+using namespace Magick;
 
 MakeImage::MakeImage(MdSettings& s) : settings(s)
     // : canvas_size(width, height),
@@ -61,7 +62,7 @@ double MakeImage::get_height(Image& img, const _s& text) {
     Large Nor PixelsPerInchResolution - Error when creating image/calculating
     height. */
 Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
-    Image check_image({1, 1}, t.bg);
+    Image check_image({1, 1});
     check_image.font(t.font);
     check_image.fontPointsize(t.font_size);
     check_image.fillColor(t.fg);
@@ -70,7 +71,9 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
     size_t text_height = std::ceil(get_height(check_image, text));
     // Resizing & drawing text on resized image causes issues. So making new
     // image.
-    Image new_img({settings.sub_width(), text_height}, t.bg);
+    Image new_img;
+    new_img.size({settings.sub_width(), text_height});
+    new_img.backgroundColor(t.bg);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);
     new_img.fillColor(t.fg);
@@ -84,7 +87,15 @@ Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
    automatically adjust to fit text. Note: Ensure text wrapping the width is
    set to the size of the canvas (minus padding on both side) */
 Image MakeImage::image_from_data(_s text, const TextData& t ) {
-    Image new_img(Geometry(settings.sub_width(), 0), t.bg);
+    Image new_img;
+    new_img.size(Geometry(settings.sub_width(), 0));
+    //----------------------------------------------------------------------------//
+    // Note to self:                                                              //
+    //    Background color set Image constructor isn't respected. Or maybe I am   //
+    //    confusing initial image color with background color? regardless, set    //
+    //    backgroundcolor with `backgroundColor`.                                 //
+    //----------------------------------------------------------------------------//
+    new_img.backgroundColor(t.bg);
     new_img.resolutionUnits(Mag::PixelsPerInchResolution);
     new_img.font(t.font);
     new_img.fontPointsize(t.font_size);

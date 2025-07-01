@@ -1,34 +1,49 @@
 #include "render_markdown.h"
 #include "parse_markdown.h"
 #include "test.h"
+#include <Magick++.h>
 #include <format>
-#include <execution>
 #include <iostream>
-#include <numeric>
-#include <vector>
-#include <array>
 #include <filesystem>
 #include <boost/filesystem.hpp>
-#include <boost/variant2.hpp>
+#include <boost/regex.hpp>
 
 
-// using boost::variant2::variant;
 using std::filesystem::exists;
 using filepath = std::filesystem::path;
-using color_variant = boost::variant2::variant<_s, std::array<int, 3>>;
 using ParseMarkdownNS::ParseMarkdown;
+using boost::regex;
+using boost::smatch;
+//---------------------------------------------------------
+// const regex color_regex(
+//     "(?<RGB>" 
+//         R"([^\\d]*)" R"((?<N1>\d{1,3}))" R"([^\\d]+)" R"((?<N2>\d{1,3}))" R"([^\\d]+)" R"((?<N3>\d{1,3}))" R"([^\\d]*)"
+//     ")"
+//     "|(?<NAME>[a-zA-Z]+)"
+// );
+// _s parse_color(_s c) {
+//     smatch m;
+//     if (boost::regex_match(c, m, color_regex)) {
+//     }
+// }
+//---------------------------------------------------------
+void exit_error(bool b, _s s, int exit_code) {
+    if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
+}
+// https://en.cppreference.com/w/cpp/utility/format/vformat.html
+template <typename... Args>
+void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
+    if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
+}
+Magick::ColorRGB parse_color(const std::vector<double>& r) {
+    exit_error(r.size() != 3, 3, "Color should only be three numbers (RGB) between (0.0-1.0)");
+    return Magick::ColorRGB(r.at(0), r.at(1), r.at(2));
+}
+
 namespace RenderMarkdownNS {
 
 RenderMarkdown::RenderMarkdown() {
     initialize_options();
-}
-
-void exit_error(bool b, _s s, int exit_code) {
-    if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
-}
-template <typename... Args>
-void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
-    if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
 }
 
 void RenderMarkdown::help_exit(int exit_code, bool config) {
@@ -137,15 +152,14 @@ void RenderMarkdown::initialize_options() {
     ;
 //------------------------------------- CONFIG OPTIONS ----------------------------------//
     this->config_options.add_options()
-        // (
-        //     "canvasbg",
-        //     po::value<color_variant>()->
-        //     // default_value(DEFAULT_CANVAS_BG)->
-        //     notifier( [this](color_variant c) {
-        //     }),
-        //     // -> default_value(this->settings.canvas_bg),
-        //     "Canvas BG"
-        // )
+        (
+            "canvasbg",
+            po::value<std::vector<double>>()->multitoken()->
+            notifier( [this](std::vector<double> col_arr) { 
+                this->settings.canvas_bg = parse_color(col_arr);
+            }),
+            "Canvas BG"
+        )
     ;
 //------------------------------------- ARGS --------------------------------------------//
     this->posargs.add("input-file"  , 1);

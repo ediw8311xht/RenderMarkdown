@@ -16,7 +16,7 @@ namespace {
     using std::format;
     //----------------------------------------------------- Boost ------------------//
     using boost::regex;
-    using bmatch = boost::match_results<_s::const_iterator>;
+    using boost::smatch;
     //----------------------------------------------------- Magick++ ---------------//
     using Magick::ColorRGB;
     using Magick::Color;
@@ -89,9 +89,9 @@ void ParseMarkdown::save_image(IMG& mimg, _s output_file) {
 void ParseMarkdown::create_image(IMG& mimg) {
     _s::const_iterator s = total_str.begin();
     _s::const_iterator e = total_str.end();
-    bmatch res;
+    smatch res;
     while (boost::regex_search(s, e, res, block_regex)) {
-        bmatch n;
+        smatch n;
         handle_inline(mimg, res.prefix() );
         if      ( res["CODE"].matched   ) { handle_code(   mimg, res ); }
         else if ( res["HEADER"].matched ) { handle_header( mimg, res ); }
@@ -109,11 +109,11 @@ void ParseMarkdown::create_image(IMG& mimg) {
 //------------------------------------------------------------------------------//
 
 /* ------------- BLOCK -------------- */
-void ParseMarkdown::handle_code(IMG& mimg, const bmatch& res) {
+void ParseMarkdown::handle_code(IMG& mimg, const smatch& res) {
     mimg.add_text_to_canvas(res["CODE"], TT::CODE);
 }
 
-void ParseMarkdown::handle_header(IMG& mimg, const bmatch& res) {
+void ParseMarkdown::handle_header(IMG& mimg, const smatch& res) {
     TT htype;
     switch (res["HEADER"].length()) {
         case 1: htype = TT::H1; break;
@@ -125,12 +125,12 @@ void ParseMarkdown::handle_header(IMG& mimg, const bmatch& res) {
     mimg.add_text_to_canvas(clean_text(res["CONTENT"]), htype);
 }
 
-void ParseMarkdown::handle_image(IMG& mimg, const bmatch& res) {
+void ParseMarkdown::handle_image(IMG& mimg, const smatch& res) {
     MakeImageNS::ImageData sub_img( res["IMAGE"] , res["ALT_TEXT"] );
     mimg.add_image_to_canvas(sub_img);
 }
 
-void ParseMarkdown::handle_line(IMG& mimg, const bmatch& res) {
+void ParseMarkdown::handle_line(IMG& mimg, const smatch& res) {
     mimg.add_line_to_canvas();
 }
 
@@ -138,7 +138,7 @@ void ParseMarkdown::handle_line(IMG& mimg, const bmatch& res) {
 /* Special characters need to be replaced, but `&amp;` gets turned into `&`
    So this is the work around */
 _s ParseMarkdown::clean_text(_s s) {
-    return regex_replace(s, replace_chars, [](const bmatch& m) -> _s {
+    return regex_replace(s, replace_chars, [](const smatch& m) -> _s {
         switch (*m[0].first) {
             case '&'  : return "&amp;amp;";
             case '<'  : return "&amp;lt;";
