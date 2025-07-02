@@ -154,7 +154,9 @@ void RenderMarkdown::initialize_options() {
             notifier( [this](_s col_arr) { 
                 this->settings.canvas_bg = parse_color(col_arr);
             }),
-            "Canvas BG"
+            "Canvas background (rgb)\n"
+            "rgb values (between 0.0 and 1.1)\n"
+            "example: 0.673 0.845 0.902 (light blue)"
         )
     ;
 //------------------------------------- ARGS --------------------------------------------//
