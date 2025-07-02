@@ -62,7 +62,7 @@ double MakeImage::get_height(Image& img, const _s& text) {
     Large Nor PixelsPerInchResolution - Error when creating image/calculating
     height. */
 Image MakeImage::image_from_data_unwrapped(_s text, const TextData& t) {
-    Image check_image({1, 1});
+    Image check_image({1, 1}, t.bg);
     check_image.font(t.font);
     check_image.fontPointsize(t.font_size);
     check_image.fillColor(t.fg);

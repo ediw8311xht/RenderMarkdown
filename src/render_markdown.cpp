@@ -8,6 +8,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
+#define STR(s) #s
+#define DOUBLE_ZERO_TO_ONE (1([.]0+)?|0([.][0-9]+)?)
+#define REGEX_GROUP(groupname, group) "(?<"#groupname">" STR(group) ")"
 
 using std::filesystem::exists;
 using filepath = std::filesystem::path;
@@ -15,17 +18,24 @@ using ParseMarkdownNS::ParseMarkdown;
 using boost::regex;
 using boost::smatch;
 //---------------------------------------------------------
-// const regex color_regex(
-//     "(?<RGB>" 
-//         R"([^\\d]*)" R"((?<N1>\d{1,3}))" R"([^\\d]+)" R"((?<N2>\d{1,3}))" R"([^\\d]+)" R"((?<N3>\d{1,3}))" R"([^\\d]*)"
-//     ")"
-//     "|(?<NAME>[a-zA-Z]+)"
-// );
-// _s parse_color(_s c) {
-//     smatch m;
-//     if (boost::regex_match(c, m, color_regex)) {
-//     }
-// }
+const regex color_regex(
+        R"([^\\d.]*)" 
+        REGEX_GROUP(N1, DOUBLE_ZERO_TO_ONE)
+        R"([^\\d.]+)"
+        REGEX_GROUP(N2, DOUBLE_ZERO_TO_ONE)
+        R"([^\\d.]+)"
+        REGEX_GROUP(N3, DOUBLE_ZERO_TO_ONE) 
+        R"([^\\d.]*)"
+);
+Magick::ColorRGB parse_color(_s col_arr) {
+    smatch m;
+    if (boost::regex_match(col_arr, m, color_regex)) {
+        return Magick::ColorRGB( std::stod(m["N1"].str()), std::stod(m["N2"]), std::stod(m["N3"].str()) );
+    } else {
+        throw std::invalid_argument( "In parse_color, invalid argument: " + col_arr );
+    }
+    // return Magick::ColorRGB(r.at(0), r.at(1), r.at(2));
+}
 //---------------------------------------------------------
 void exit_error(bool b, _s s, int exit_code) {
     if (b) { std::cerr << "Error: " << s << std::endl; exit(exit_code); }
@@ -34,10 +44,6 @@ void exit_error(bool b, _s s, int exit_code) {
 template <typename... Args>
 void exit_error(bool b, int exit_code, const std::format_string<Args...> n, Args&&... sl) {
     if (b) { exit_error(b, std::vformat(n.get(), std::make_format_args(sl...)), exit_code); }
-}
-Magick::ColorRGB parse_color(const std::vector<double>& r) {
-    exit_error(r.size() != 3, 3, "Color should only be three numbers (RGB) between (0.0-1.0)");
-    return Magick::ColorRGB(r.at(0), r.at(1), r.at(2));
 }
 
 namespace RenderMarkdownNS {
@@ -66,16 +72,6 @@ void RenderMarkdown::test_exit() {
     TestRenderMarkdownNS::TestRenderMarkdown test;
     test.run_all();
     exit(0);
-}
-void RenderMarkdown::run_program(int argc, char** argv) {
-    MakeImageNS::MakeImage::setup_magick(*argv);
-    // MdSettings settings(prog_args.img_width, prog_args.img_height);
-    get_options(argc, argv);
-    get_config();
-    ParseMarkdown parse_m(prog_args.input_file);
-    MakeImageNS::MakeImage img(settings);
-    parse_m.create_image(img);
-    parse_m.save_image(img, prog_args.output_file);
 }
 
 void RenderMarkdown::check_files() {
@@ -154,8 +150,8 @@ void RenderMarkdown::initialize_options() {
     this->config_options.add_options()
         (
             "canvasbg",
-            po::value<std::vector<double>>()->multitoken()->
-            notifier( [this](std::vector<double> col_arr) { 
+            po::value<_s>()->
+            notifier( [this](_s col_arr) { 
                 this->settings.canvas_bg = parse_color(col_arr);
             }),
             "Canvas BG"
@@ -191,6 +187,16 @@ void RenderMarkdown::get_options(int argc, char** argv) {
     } catch (boost::program_options::error& e) {
         exit_error(true, 1, "{}: {}", "Handling Options/Arguments", e.what());
     }
+}
+
+void RenderMarkdown::run_program(int argc, char** argv) {
+    MakeImageNS::MakeImage::setup_magick(*argv);
+    get_options(argc, argv);
+    get_config();
+    ParseMarkdown parse_m(prog_args.input_file);
+    MakeImageNS::MakeImage img(settings);
+    parse_m.create_image(img);
+    parse_m.save_image(img, prog_args.output_file);
 }
 
 } //------------- END NAMESPACE -------------//
