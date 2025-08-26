@@ -53,12 +53,13 @@ Other Options:
 ## Installing/Compiling
 Ensure you have installed the required libraries.
 
-#### Linux
-Run `make` then execute binary `RenderMarkdown`
+1. `meson setup build`
+2. `meson compile -C build`
 
-#### Windows
-If running on Windows, then you may need to add boost into makefile.
+Build files and binary (`RenderMarkdown`) will be in the `build` directory.
 
+### Optional
+After building, run `meson install -C build` to insall binary to your system.
 
 ## Images
 
