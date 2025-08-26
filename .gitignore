@@ -17,6 +17,8 @@ log.txt
 .my_info
 */.my_info
 */test/
+build/*
+build/
 test/
 STATIC_FILES/
 *.jpeg

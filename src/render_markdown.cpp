@@ -34,7 +34,6 @@ Magick::ColorRGB parse_color(_s col_arr) {
     } else {
         throw std::invalid_argument( "In parse_color, invalid argument: " + col_arr );
     }
-    // return Magick::ColorRGB(r.at(0), r.at(1), r.at(2));
 }
 //---------------------------------------------------------
 void exit_error(bool b, _s s, int exit_code) {
@@ -104,7 +103,7 @@ void RenderMarkdown::initialize_options() {
         ( "help,h"        , po::bool_switch(&dflag) , "print help"                    )
         ( "help-config,H" , po::bool_switch(&dflag) , "print configuration file help" )
         ( "test,t"        , po::bool_switch(&dflag) , "run tests"                     )
-    //--- Flags/Options -----//
+    //--- CLI Options -----//
         (
             "config,c",
                 po::value<_s>( &this->prog_args.config_file )->default_value(DEFAULT_CONFIG),
